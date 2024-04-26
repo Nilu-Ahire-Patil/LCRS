@@ -6,6 +6,7 @@ class Connect {
 	int csoc[Conf :: max_add_capacity] = { -1 };
 	int cCount = 0;
 	int ssoc = -1;
+	unsigned short listenPort = -1;
 
 	int connectPeer();
 
@@ -15,7 +16,9 @@ class Connect {
 		Connect(in_addr ip){
 			Server server;
 			Network nt;
-			if((this->a_list = server.getAddrList(nt.getTcpSocket(), ip)) == NULL) { Sys :: log(__func__,__LINE__);}
+			if((this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket(), &listenPort))) < 0) { Sys :: log(__func__,__LINE__);}
+			if(this->listenPort < 0) { Sys :: log(__func__,__LINE__);}
+			if((this->a_list = server.getAddrList(nt.getTcpSocket(), ip, this->listenPort)) == NULL) { Sys :: log(__func__,__LINE__);}
 		}
 };	
 
@@ -23,7 +26,9 @@ int Connect :: connectPeer(){
 	int loop = 0;
 	Network nt;
 	while(loop < this->a_list->size - 1){
-		if((this->soc[loop] = nt.connectTcp(nt.getTcpSocket(), this->a_list->list[loop])) < 0) { Sys :: log(__func__,__LINE__); continue;}
+		if((this->soc[loop] = nt.connectTcp(nt.getTcpSocket(), this->a_list->list[loop], this->a_list->port[loop])) < 0) {
+		       Sys :: log(__func__,__LINE__); continue;
+		}
 		char msg[100] = "hello\0";
 		send(soc[loop], (void*) msg, sizeof(msg), 0); 
 		loop++;
@@ -41,21 +46,21 @@ int Connect :: initialize(){
 	al.print(this->a_list);
 
 	connectPeer();
-	this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()));
+	//this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()));
 
-	while(1){
+	while(this->cCount < Conf :: max_add_capacity){
 		char msg[100] = { '\0' };
 		cout<<"waiting to smone conect"<<endl;
-		if((this->csoc[cCount] = nt.acceptTcp(this->ssoc)) < 0) { Sys :: log(__func__,__LINE__); continue;}
+		if((this->csoc[this->cCount] = nt.acceptTcp(this->ssoc)) < 0) { Sys :: log(__func__,__LINE__);}
 		else { Sys :: log("new nabur node connected"); }
 
 		int recvBytes = 0;
-		if((recvBytes = recv(this->csoc[cCount], (void*) msg, sizeof(msg), 0)) < 0) { Sys :: log(__func__,__LINE__);}
+		if((recvBytes = recv(this->csoc[this->cCount], (void*) msg, sizeof(msg), 0)) < 0) { Sys :: log(__func__,__LINE__);}
 		else { 	Sys :: log("message from node");
 			cout<< msg << endl;
 	       	}
 
-		cCount++;
+		this->cCount++;
 	}
 	
 	Sys :: log("p2p connetion listning stop");

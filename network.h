@@ -6,6 +6,7 @@ class Network {
 		int getTcpSocket();
 
 		int bindTcp(int);
+		int bindTcp(int, unsigned short*);
 
 		int listenTcp(int);
 		int acceptTcp(int);
@@ -17,10 +18,35 @@ class Network {
 int Network :: getTcpSocket(){
 
 	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) { Sys :: log(__func__,__LINE__);}
+	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) { Sys :: log(__func__,__LINE__); return -1;}
 
 	int optval = 1;
 	if(setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) { Sys :: log(__func__,__LINE__);}
+
+	return soc;
+}
+
+int Network :: bindTcp(int soc, unsigned short* listning_port){
+	if(soc < 0) return soc;
+
+	int loop = 0;
+	while(loop < Conf :: portCount){
+		sockaddr_in add;
+		memset(&add, 0, sizeof(sockaddr_in));
+		add.sin_family = AF_INET;
+		add.sin_port = htons(Conf :: ports[loop]);
+		add.sin_addr.s_addr = INADDR_ANY;
+
+		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { Sys :: log(__func__,__LINE__);}
+		else {	
+			*listning_port = Conf :: ports[loop];
+			Sys :: log("port configure");
+			cout << "port "<< Conf :: ports[loop]<< endl;
+			loop = Conf :: portCount;	//Exit condition executes when all ok
+		}
+
+		loop++;
+	}
 
 	return soc;
 }
@@ -37,8 +63,7 @@ int Network :: bindTcp(int soc){
 		add.sin_addr.s_addr = INADDR_ANY;
 
 		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { Sys :: log(__func__,__LINE__);}
-		else {	
-			Sys :: log("port configure");
+		else {	Sys :: log("port configure");
 			cout << "port "<< Conf :: ports[loop]<< endl;
 			loop = Conf :: portCount;	//Exit condition executes when all ok
 		}

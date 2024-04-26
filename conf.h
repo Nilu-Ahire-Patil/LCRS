@@ -1,7 +1,7 @@
 class Conf {
 
 	public:
-		static constexpr int max_add_capacity = 1024;	//Max capacity of address list
+		static constexpr int max_add_capacity = 24;	//Max capacity of address list
 		static constexpr int max_con_buff = 10;		//Max connection waiting buffer
 
 		static const int portCount = 10;
