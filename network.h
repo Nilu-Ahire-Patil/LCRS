@@ -1,3 +1,6 @@
+// #include "conf.h"
+#include <arpa/inet.h>
+
 using namespace std;
 
 class Network {
@@ -18,66 +21,63 @@ class Network {
 int Network :: getTcpSocket(){
 
 	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) { Sys :: log(__func__,__LINE__); return -1;}
+	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) { SYSLOG; return -1;}
 
 	int optval = 1;
-	if(setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) { Sys :: log(__func__,__LINE__);}
+	if(setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) { SYSLOG;}
 
 	return soc;
 }
 
 int Network :: bindTcp(int soc, unsigned short* listning_port){
 	if(soc < 0) return soc;
+ 
+	int temp = Conf :: getInfo<int>(MAC);
 
-	int loop = 0;
-	while(loop < Conf :: portCount){
+	set<int>::iterator it = Conf :: prts.begin();
+	while(it != Conf :: prts.end()){
 		sockaddr_in add;
 		memset(&add, 0, sizeof(sockaddr_in));
 		add.sin_family = AF_INET;
-		add.sin_port = htons(Conf :: ports[loop]);
+		add.sin_port = htons(*it);
 		add.sin_addr.s_addr = INADDR_ANY;
 
-		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { Sys :: log(__func__,__LINE__);}
-		else {	
-			*listning_port = Conf :: ports[loop];
+		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { SYSLOG; it++;}
+		else {
+			*listning_port = *it;
 			Sys :: log("port configure");
-			cout << "port "<< Conf :: ports[loop]<< endl;
-			loop = Conf :: portCount;	//Exit condition executes when all ok
+			cout << "port "<< *it << endl;
+			break;
 		}
-
-		loop++;
 	}
-
 	return soc;
 }
 
 int Network :: bindTcp(int soc){
 	if(soc < 0) return soc;
 
-	int loop = 0;
-	while(loop < Conf :: portCount){
+	auto it = Conf :: prts.begin();
+	while(it != Conf :: prts.end()){
 		sockaddr_in add;
 		memset(&add, 0, sizeof(sockaddr_in));
 		add.sin_family = AF_INET;
-		add.sin_port = htons(Conf :: ports[loop]);
+		add.sin_port = htons(*it);
 		add.sin_addr.s_addr = INADDR_ANY;
 
-		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { Sys :: log(__func__,__LINE__);}
+		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { SYSLOG; it++;}
 		else {	Sys :: log("port configure");
-			cout << "port "<< Conf :: ports[loop]<< endl;
-			loop = Conf :: portCount;	//Exit condition executes when all ok
+			cout << "port "<< *it << endl;
+			break;
 		}
-
-		loop++;
 	}
-
+	if(Conf :: prts.empty()){ SYSLOG;}
 	return soc;
 }
 
 int Network :: listenTcp(int soc){
 	if(soc < 0) return soc;
 
-	if(listen(soc, Conf :: max_con_buff) < 0) { Sys :: log(__func__,__LINE__);}
+	if(listen(soc, Conf :: getInfo<int>(MCB)) < 0) { SYSLOG;}
 
 	return soc;
 }
@@ -89,7 +89,7 @@ int Network :: acceptTcp(int soc){
 	sockaddr_in c_addr;
 	socklen_t c_addr_len = sizeof(c_addr);
 
-	if((csoc = accept(soc, (struct sockaddr*) &c_addr, &c_addr_len)) < 0) { Sys :: log(__func__,__LINE__);}
+	if((csoc = accept(soc, (struct sockaddr*) &c_addr, &c_addr_len)) < 0) { SYSLOG;}
 
 	return csoc;
 }
@@ -97,11 +97,10 @@ int Network :: acceptTcp(int soc){
 int Network :: connectTcp(int soc, in_addr ip){
 	if(soc < 0) return soc;
 
-	int loop = 0;
-	while(loop < Conf :: portCount){
-		if(connectTcp(soc, ip, Conf :: ports[loop]) < 0) { Sys :: log(__func__,__LINE__);}
-		else{ loop = Conf :: portCount;}
-		loop++;
+	auto it = Conf :: prts.begin();
+	while(it != Conf :: prts.end()){
+		if(connectTcp(soc, ip, *it) < 0) { SYSLOG;}
+		else{ break;}
 	}
 
 	return soc;
@@ -110,7 +109,7 @@ int Network :: connectTcp(int soc, in_addr ip){
 int Network :: connectTcp(int soc, in_addr ip, unsigned short int port){
 	if(soc < 0) return soc;
 
-	struct sockaddr_in s_addr;
+	sockaddr_in s_addr;
 	socklen_t s_addr_len = sizeof(s_addr);
 
 	memset(&s_addr, 0, sizeof(sockaddr_in));
@@ -118,7 +117,7 @@ int Network :: connectTcp(int soc, in_addr ip, unsigned short int port){
 	s_addr.sin_port = htons(port);
 	s_addr.sin_addr = ip;
 
-	if(connect(soc,(struct sockaddr*) &s_addr, s_addr_len) < 0) { Sys :: log(__func__,__LINE__);}
+	if(connect(soc,(sockaddr*) &s_addr, s_addr_len) < 0) { SYSLOG;}
 
 	return soc;
 }

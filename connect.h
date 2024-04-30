@@ -1,11 +1,11 @@
 #include "server.h"
 
 class Connect {
-	addr_list* a_list = NULL;
-	int soc[Conf :: max_add_capacity] = { -1 };
-	int csoc[Conf :: max_add_capacity] = { -1 };
-	int cCount = 0;
-	int ssoc = -1;
+	addr_book* a_book = NULL;
+	int* soc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
+	int* csoc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
+	int cCount = 0;		//connection count
+	int ssoc = -1;		//tcp listning socket
 	unsigned short listenPort = -1;
 
 	int connectPeer();
@@ -14,21 +14,23 @@ class Connect {
 		int initialize();
 
 		Connect(in_addr ip){
+			Conf :: loadConf("config.json");
 			Server server;
 			Network nt;
-			if((this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket(), &listenPort))) < 0) { Sys :: log(__func__,__LINE__);}
-			if(this->listenPort < 0) { Sys :: log(__func__,__LINE__);}
-			if((this->a_list = server.getAddrList(nt.getTcpSocket(), ip, this->listenPort)) == NULL) { Sys :: log(__func__,__LINE__);}
+			if((this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket(), &listenPort))) < 0) {SYSLOG;}
+			if(this->listenPort < 0) {SYSLOG;}
+			if((this->a_book = server.getAddrBook(nt.getTcpSocket(), ip, this->listenPort)) == NULL) {SYSLOG;}
 		}
+
 };	
 
 int Connect :: connectPeer(){
-	int loop = 0;
 	Network nt;
-	while(loop < this->a_list->size - 1){
-		if((this->soc[loop] = nt.connectTcp(nt.getTcpSocket(), this->a_list->list[loop], this->a_list->port[loop])) < 0) {
-		       Sys :: log(__func__,__LINE__); continue;
-		}
+	int loop = 0;
+	while(loop < this->a_book->size){
+		if((this->a_book->clientSockets[loop] = nt.connectTcp(nt.getTcpSocket(),
+			this->a_book->a_list[loop].addr, this->a_book->a_list[loop].port)) < 0) { SYSLOG; continue;}
+
 		char msg[100] = "hello\0";
 		send(soc[loop], (void*) msg, sizeof(msg), 0); 
 		loop++;
@@ -43,19 +45,21 @@ int Connect :: initialize(){
 
 	Network nt;
 	AddrList al;
-	al.print(this->a_list);
+	al.print(this->a_book);
 
 	connectPeer();
 	//this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()));
 
-	while(this->cCount < Conf :: max_add_capacity){
+	while(this->cCount < Conf ::  getInfo<int>(MAC)){
 		char msg[100] = { '\0' };
 		cout<<"waiting to smone conect"<<endl;
-		if((this->csoc[this->cCount] = nt.acceptTcp(this->ssoc)) < 0) { Sys :: log(__func__,__LINE__);}
+		if((this->csoc[this->cCount] = nt.acceptTcp(this->ssoc)) < 0) {SYSLOG;}
 		else { Sys :: log("new nabur node connected"); }
 
+		//client has to add this address in his book also
+		//
 		int recvBytes = 0;
-		if((recvBytes = recv(this->csoc[this->cCount], (void*) msg, sizeof(msg), 0)) < 0) { Sys :: log(__func__,__LINE__);}
+		if((recvBytes = recv(this->csoc[this->cCount], (void*) msg, sizeof(msg), 0)) < 0) {SYSLOG;}
 		else { 	Sys :: log("message from node");
 			cout<< msg << endl;
 	       	}

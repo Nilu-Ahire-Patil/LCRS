@@ -2,60 +2,62 @@
 #include "addrList.h"
 #include "network.h"
 
-
-//#include<thread>		//For pthread_create ,pthread_detach, pthread_exit
-
-//#include<sys/socket.h>	//For socket, bind, listen, accept
-//#include<stdlib.h>		//For EXIT_FAILURE
-//#include<string.h>		//For memset
-//#include<unistd.h>		//For close
-//#include<arpa/inet.h>		//For inet_addr
-//#include<netinet/in.h>	//For inet_addr, INET_ADDRSTRLEN ,inet_ntop
-
 using namespace std;
 
 class Server {
 
-	struct addr_list* a_list = new addr_list;
-	int soc = -1;
-	int acceptClient();
+	addr_book* a_book = new addr_book;
+
+	int acceptClient(int);
 
 	public:
 		void start(); 					//ONLY FOR SERVER
-		struct addr_list* getAddrList(int, in_addr, unsigned short); 	//ONLY FOR CLIENT
+		addr_book* getAddrBook(int, in_addr, unsigned short); 	//ONLY FOR CLIENT
+									//
+	Server(){
+		this->a_book->a_list = new addr_list[Conf :: getInfo<int>(MAC)] { 0 };
+		this->a_book->clientSockets = new int[Conf :: getInfo<int>(MAC)] { -1 };
+	}
 };
 
 void Server :: start(){
 
 	Network nt;
-	this->soc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()));
-	if(this->soc < 0){ Sys :: log(__func__,__LINE__); exit(1);}
+	int soc = -1;
+	if((soc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()))) < 0){ SYSLOG; exit(1);}
 	while(1){ 
 		int csoc = -1;
-		if((csoc = acceptClient()) < 0) { Sys :: log(__func__,__LINE__); continue;}
-
-		int sendBytes = 0;
-		if((sendBytes = send(csoc, this->a_list, sizeof(addr_list), 0)) < 0){ Sys :: log(__func__,__LINE__);}
-		else{ Sys :: log("addr_list sent"); }
+		if((csoc = acceptClient(soc)) < 0) { SYSLOG; continue;}
 	}
 }
 
-int Server :: acceptClient(){
-	if(this->soc < 0) return this->soc;
+int Server :: acceptClient(int soc){
+	if(soc < 0) return soc;
 
-	struct sockaddr_in c_addr; 
+	sockaddr_in c_addr; 
 	socklen_t c_addr_len = sizeof(c_addr);
-	AddrList AL;
 
 	int csoc = -1;
-	if((csoc = accept(this->soc, (struct sockaddr*) &c_addr, &c_addr_len)) < 0) { Sys :: log(__func__,__LINE__); return -1;}
+	if((csoc = accept(soc, (sockaddr*) &c_addr, &c_addr_len)) < 0) { SYSLOG; return -1;}
 
+	//get client port
 	unsigned short listning_port = -1;
 	int recvByte = 0;
-	if((recvByte = recv(csoc, &listning_port, sizeof(unsigned short), 0)) < 0) { Sys :: log(__func__,__LINE__); return -1;}
+	if((recvByte = recv(csoc, &listning_port, sizeof(unsigned short), 0)) < 0) { SYSLOG; return -1;}
 	else{ Sys :: log("port received	"); }
 
-	AL.add(this->a_list, c_addr.sin_addr, listning_port); 
+	//send size of addr_book
+	int sendBytes = -1;
+	if((sendBytes = send(csoc, &this->a_book->size, sizeof(int), 0)) < 0){ SYSLOG;}
+	else{ Sys :: log("addr_book size sent"); }
+
+	///send addr_list
+	sendBytes = -1;
+	if((sendBytes = send(csoc, this->a_book->a_list, sizeof(addr_list) * this->a_book->size, 0)) < 0){ SYSLOG;}
+	else{ Sys :: log("addr_list sent" + sendBytes); }
+
+	AddrList AL;
+	AL.add(this->a_book, c_addr.sin_addr, listning_port, csoc); 
 
 	Sys :: log("new client connected");
 
@@ -68,20 +70,29 @@ int Server :: acceptClient(){
 	return csoc;
 }	
 
-struct addr_list* Server :: getAddrList(int soc, in_addr ip, unsigned short listning_port){
+addr_book* Server :: getAddrBook(int soc, in_addr ip, unsigned short listning_port){
 	if(soc < 0) return NULL;
 
 	Network nt;
 	int csoc = -1;
-	if((csoc = nt.connectTcp(soc, ip)) < 0) { Sys :: log(__func__,__LINE__); return NULL;}
+	if((csoc = nt.connectTcp(soc, ip)) < 0) { SYSLOG; return NULL;}
 
+	//send listning port
 	int sendBytes = -1;
-	if((sendBytes = send(csoc, &listning_port, sizeof(unsigned short), 0)) < 0){ Sys :: log(__func__,__LINE__); return NULL;}
+	if((sendBytes = send(csoc, &listning_port, sizeof(unsigned short), 0)) < 0){ SYSLOG; return NULL;}
 	else { Sys :: log("port sent"); }
 
-	addr_list* a_list = new addr_list;
-	int recvByte = 0;
-	if((recvByte = recv(csoc, a_list, sizeof(addr_list), 0)) < 0) { Sys :: log(__func__,__LINE__); return NULL;}
-	else{ Sys :: log("received addr_list"); }
-	return a_list;
+	//get size of addr_book first
+	int recvByte = -1;
+	if((recvByte = recv(csoc, &this->a_book->size, sizeof(int), 0)) < 0) { SYSLOG; return NULL;}
+	else{ Sys :: log("received addr_book size"); }
+
+	//addr_list* a_list = new addr_list;
+	//get addr_list
+	recvByte = -1;
+	if((recvByte = recv(csoc, this->a_book->a_list, sizeof(addr_list) * this->a_book->size, 0)) < 0) { SYSLOG; return NULL;}
+	else if (recvByte != sizeof(addr_list) * this->a_book->size){ Sys :: log("Incomplete addr_list receve"); }
+	else { Sys :: log("addr_list receve"); }
+
+	return this->a_book;
 }
