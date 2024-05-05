@@ -1,11 +1,17 @@
+//#pragma once
+
 #include "server.h"
+
+//#include "mConfig.h"
+//#include "addrList.h"
+//#include "network.h"
 
 class Connect {
 	addr_book* a_book = NULL;
 	int* soc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
 	int* csoc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
-	int cCount = 0;		//connection count
-	int ssoc = -1;		//tcp listning socket
+	//int cCount = 0;		//connection count
+	int ssoc = -1;		//tcp listening socket
 	unsigned short listenPort = -1;
 
 	int connectPeer();
@@ -14,7 +20,7 @@ class Connect {
 		int initialize();
 
 		Connect(in_addr ip){
-			Conf :: loadConf("config.json");
+			Conf :: initConf("init.conf");
 			Server server;
 			Network nt;
 			if((this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket(), &listenPort))) < 0) {SYSLOG;}
@@ -36,7 +42,7 @@ int Connect :: connectPeer(){
 		loop++;
 	}
 
-	Sys :: log("messagee send to all address from addr_list");
+	Sys :: log("message send to all address from addr_list");
 
 	return loop;
 }
@@ -49,25 +55,23 @@ int Connect :: initialize(){
 
 	connectPeer();
 	//this->ssoc = nt.listenTcp(nt.bindTcp(nt.getTcpSocket()));
+	Sys :: log("Waiting For Node"); 
 
-	while(this->cCount < Conf ::  getInfo<int>(MAC)){
-		char msg[100] = { '\0' };
-		cout<<"waiting to smone conect"<<endl;
-		if((this->csoc[this->cCount] = nt.acceptTcp(this->ssoc)) < 0) {SYSLOG;}
-		else { Sys :: log("new nabur node connected"); }
+	int loop = 0;
+	while(loop < Conf ::  getInfo<int>(MAC)){
+		if((this->csoc[loop] = nt.acceptTcp(this->ssoc)) < 0) {SYSLOG;}
+		else { Sys :: log("new Naber node connected"); }
 
 		//client has to add this address in his book also
-		//
-		int recvBytes = 0;
-		if((recvBytes = recv(this->csoc[this->cCount], (void*) msg, sizeof(msg), 0)) < 0) {SYSLOG;}
-		else { 	Sys :: log("message from node");
-			cout<< msg << endl;
-	       	}
 
-		this->cCount++;
+		char msg[100] = { '\0' };
+		int recvBytes = 0;
+		if((recvBytes = recv(this->csoc[loop], (void*) msg, sizeof(msg), 0)) < 0) {SYSLOG;}
+		else { 	Sys :: log("message from node :");}
+		loop++;
 	}
 	
-	Sys :: log("p2p connetion listning stop");
+	Sys :: log("p2p connection listening stop");
 
 	return ssoc;
 }

@@ -1,5 +1,12 @@
-// #include "conf.h"
-#include <arpa/inet.h>
+#pragma once
+
+#include "addrList.h"
+
+//#include <arpa/inet.h>
+//#include <set>
+//#include <iostream>
+//#include <cstring>
+//#include "mConfig.h"
 
 using namespace std;
 
@@ -32,10 +39,9 @@ int Network :: getTcpSocket(){
 int Network :: bindTcp(int soc, unsigned short* listning_port){
 	if(soc < 0) return soc;
  
-	int temp = Conf :: getInfo<int>(MAC);
-
-	set<int>::iterator it = Conf :: prts.begin();
-	while(it != Conf :: prts.end()){
+	set<int> ports = Conf :: getInfo<set<int>>(PORTS);
+	set<int>::iterator it = ports.begin();
+	while(it != ports.end()){
 		sockaddr_in add;
 		memset(&add, 0, sizeof(sockaddr_in));
 		add.sin_family = AF_INET;
@@ -45,8 +51,8 @@ int Network :: bindTcp(int soc, unsigned short* listning_port){
 		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { SYSLOG; it++;}
 		else {
 			*listning_port = *it;
-			Sys :: log("port configure");
-			cout << "port "<< *it << endl;
+			Sys :: log("listning port configure to : " + *it);
+			cout << "listning port " << *it << endl;
 			break;
 		}
 	}
@@ -56,8 +62,9 @@ int Network :: bindTcp(int soc, unsigned short* listning_port){
 int Network :: bindTcp(int soc){
 	if(soc < 0) return soc;
 
-	auto it = Conf :: prts.begin();
-	while(it != Conf :: prts.end()){
+	set<int> ports = Conf :: getInfo<set<int>>(PORTS);
+	set<int>::iterator it = ports.begin();
+	while(it != ports.end()){
 		sockaddr_in add;
 		memset(&add, 0, sizeof(sockaddr_in));
 		add.sin_family = AF_INET;
@@ -65,12 +72,9 @@ int Network :: bindTcp(int soc){
 		add.sin_addr.s_addr = INADDR_ANY;
 
 		if(bind(soc, (sockaddr*) &add, sizeof(add)) < 0) { SYSLOG; it++;}
-		else {	Sys :: log("port configure");
-			cout << "port "<< *it << endl;
-			break;
-		}
+		else {	Sys :: log("port configure " + *it); break;}
 	}
-	if(Conf :: prts.empty()){ SYSLOG;}
+	if(ports.empty()){ SYSLOG;}
 	return soc;
 }
 
@@ -97,9 +101,10 @@ int Network :: acceptTcp(int soc){
 int Network :: connectTcp(int soc, in_addr ip){
 	if(soc < 0) return soc;
 
-	auto it = Conf :: prts.begin();
-	while(it != Conf :: prts.end()){
-		if(connectTcp(soc, ip, *it) < 0) { SYSLOG;}
+	set<int> ports = Conf :: getInfo<set<int>>(PORTS);
+	set<int>::iterator it = ports.begin();
+	while(it != ports.end()){
+		if(connectTcp(soc, ip, *it) < 0) { SYSLOG; ++it;}
 		else{ break;}
 	}
 

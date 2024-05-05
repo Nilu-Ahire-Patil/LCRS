@@ -1,7 +1,10 @@
-// #include "conf.h"
-#include <cstring> 	//memset
+#pragma once
+
 #include <arpa/inet.h>
-#include <iostream>
+#include "mConfig.h"
+
+//#include <cstring> 	
+//#include <iostream>
 
 using namespace std;
 
@@ -27,10 +30,12 @@ void AddrList :: add(struct addr_book* a_book, struct in_addr c_addr, unsigned s
 
 	if(a_book->size >= Conf :: getInfo<int>(MAC)){ a_book->size = 0;}
 
+	//check that address already exists or not
+
 	a_book->a_list[a_book->size].addr = c_addr;
 	a_book->a_list[a_book->size].port = port;
-	a_book->clientSockets[a_book->size++] = soc;
-	//a_book->size++;
+	a_book->clientSockets[a_book->size] = soc;
+	a_book->size++;
 }
 
 void AddrList :: print(addr_book* a_book){
