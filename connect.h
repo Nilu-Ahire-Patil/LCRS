@@ -27,7 +27,6 @@ class Connect {
 			if(this->listenPort < 0) {SYSLOG;}
 			if((this->a_book = server.getAddrBook(nt.getTcpSocket(), ip, this->listenPort)) == NULL) {SYSLOG;}
 		}
-
 };	
 
 int Connect :: connectPeer(){
