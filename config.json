@@ -1,7 +1,0 @@
-{
-    "max_add_capacity": 10,
-    "max_con_buff": 10,
-    "port_count": 3,
-    "ports": [8090, 8091, 8092]
-}
-
