@@ -5,8 +5,9 @@
 #include "conf.h"
 //#include "addrList.h"
 #include "network.h"
+#define DEFAULT_CONFIGURATION_FILE_PATH "init.conf"
 
-class Connect {
+class Connect : public Conf {
 //	addr_book* a_book = NULL;
 //	int* soc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
 //	int* csoc = new int[Conf :: getInfo<int>(MAC)]{ 0 };
@@ -27,8 +28,11 @@ class Connect {
 			if((this->a_book = server.getAddrBook(nt.getTcpSocket(), ip, this->listenPort)) == NULL) {SYSLOG;}
 		}
 	*/
-		Connect(char* confFileName){
-			Conf :: initConf(confFileName);
+
+		Connect() : Connect(DEFAULT_CONFIGURATION_FILE_PATH){}
+
+		Connect(const char* confFilePath){
+			Conf :: initConf(confFilePath);
 			Network nt;
 			if((this->soc = nt.listenTcp(nt.bindTcp(&listenPort))) < 0){ SYSLOG; STOP; }
 			if(this->listenPort < 0){ SYSLOG; STOP; }

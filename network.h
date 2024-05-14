@@ -15,7 +15,7 @@ class Network : public Conf {
 
 		int getUdpSocket();
 		int bindUdp();
-		int broadcast(packet*);
+		int broadcast(packet&);
 		int joinSingleMulticastGroup();
 		void receveAndReplyBroadcast();
 
@@ -32,7 +32,6 @@ class Network : public Conf {
 		int listenTcp(int);
 
 		int acceptTcp(int);
-
 
 	//	int connectTcp(int, in_addr);
 	//	int connectTcp(int, in_addr, unsigned short);
@@ -63,9 +62,11 @@ int Network :: getUdpSocket(){
 	return soc;
 }
 
-int Network :: broadcast(packet* pkt){
+int Network :: broadcast(packet& pkt){
 	int soc = -1;
 	if((soc = getUdpSocket()) < 0){ SYSLOG; STOP; }
+
+	char* buffer = pkt.serialize();
 
 	struct sockaddr_in oth_addr;
 	memset(&oth_addr, 0, sizeof(struct sockaddr_in));
@@ -90,13 +91,13 @@ int Network :: broadcast(packet* pkt){
     			oth_addr.sin_port = htons(*pit);
 
 			int s_byte;
-    			if((s_byte = sendto(soc, pkt, sizeof(pkt), 0, (struct sockaddr*)&oth_addr, sizeof(struct sockaddr_in))) < 0){ SYSLOG; }
+    			if((s_byte = sendto(soc, buffer, pkt.getFullSize(), 0, (struct sockaddr*)&oth_addr, sizeof(struct sockaddr_in))) < 0){ SYSLOG; }
 			++pit;
 		}
 		++it;
     	}
 
-	USRLOG(" Broadcast sent");
+	USRLOG("broadcast sent to all");
 	close(soc);
 	return 0;
 }
@@ -132,12 +133,21 @@ void Network :: receveAndReplyBroadcast(){
 	socklen_t oth_addr_len = sizeof(oth_addr);
 
 	while(1){
-		packet* b_pack = new packet{ '\0' };
+		char buffer[MAX_PACKET_SIZE] = { '\0' };
 		int recv_byte;
-    		if((recv_byte = recvfrom(soc, b_pack, sizeof(packet), 0, (sockaddr*) &oth_addr, &oth_addr_len)) < 0){ SYSLOG; continue; }
 
-		printf("[RECEIVE] [%s] [%d byte]\n", inet_ntoa(oth_addr.sin_addr), recv_byte);
-		free(b_pack);
+    		if((recv_byte = recvfrom(soc, buffer, MAX_PACKET_SIZE, 0, (sockaddr*) &oth_addr, &oth_addr_len)) < 0){ SYSLOG; continue; }
+		packet pkt;
+		pkt.deserialize(buffer);
+		USRLOG(string(inet_ntoa(oth_addr.sin_addr)) + " : " + packetTypeToString(pkt.getType()) + " : " + to_string(recv_byte) + " Bytes");
+/*		printf("[RECEIVE] [%s] [%d byte]\n", inet_ntoa(oth_addr.sin_addr), recv_byte);
+		
+		cout << "type : " << packetTypeToString(pkt.getType()) << endl;
+		cout << "length : " << pkt.getSize() << endl;
+		cout << "full size : " << pkt.getFullSize() << endl;
+		cout << "data : " << *(unsigned short*)pkt.data << endl;
+*/
+		pkt.freePacketData();
 	}
     	close(soc);
 }
@@ -147,10 +157,11 @@ int Network :: updateAddrSet(unsigned short listening_port){
 	//creating packet of listening port witih port flag
 	packet pkt;
 	//initialise paket;
-	//pkt
-	//..
+	pkt.init(packetType :: UdpHandshake, &listening_port, sizeof(unsigned short));
 	//send listening port in broadcast
-	if(broadcast(&pkt) < 0){ SYSLOG; STOP; }
+	if(broadcast(pkt) < 0){ SYSLOG; STOP; }
+	//free reserv memory used for serializing the packet
+	pkt.freePacketData();
 	//accepting broadcast
 	receveAndReplyBroadcast();
 		

@@ -2,7 +2,7 @@
 
 int main(int argc, char** argv)
 {
-	if(argc < 2){ cout << "provde Config File name" << endl; return 1; }
+//	if(argc < 2){ cout << "provde Config File name" << endl; return 1; }
 
 /*
 	in_addr i;
@@ -17,10 +17,8 @@ int main(int argc, char** argv)
 	cout << "size : "<< Conf :: a_book.size() << endl;
 
 */
-	
-
-	Connect cn(argv[1]);
-	cn.initialize();
+	if(argc < 2){ Connect cn; cn.initialize(); }
+	else { Connect cn(argv[1]); cn.initialize(); }
 
 	getchar();
 	return 0;
