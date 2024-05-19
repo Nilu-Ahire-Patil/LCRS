@@ -7,46 +7,40 @@
 #include <iostream>
 
 //auto generated system log for error and warnings 
-#define SYSLOG Sys :: log(__FILE__, __LINE__)
+#define ERROR 	"\033[31mError\033[0m"
+#define INFO 	"\033[32mInfo\033[0m"
+#define WARN 	"\033[33mWarning\033[0m"
+#define SUCCESS "\033[34mSuccess\033[0m"
 
-//user generated system log for warnings and display information
-#define USRLOG(msg) Sys :: log(__FILE__, __LINE__, msg)							
-
-//stop program execution completely
-#define STOP do{\
-		cout<<__FILE__ << " : " << __LINE__ << ": STOP SIGNAL TRIGGER" << endl;\
-       		exit(EXIT_FAILURE);\
-	}while(0)
-
-using namespace std;
+#define SYSLOG(logType, msg) Sys::log(__FILE__, __LINE__, logType, msg)
+#define STOP(logType, msg) SYSLOG(logType, msg); exit(EXIT_FAILURE)
 
 class Sys {
 	public:
 		//system log with file name and line number
 		//prints system error
-		static void log(const char*, int);
+		static void log(const char*, int, const char*, const std::string&);
 
-		//system log with file name, line number and message string
-		//prints user provided string
-		static void log(const char*, int, const string&);
 };
 
-void Sys :: log(const char* fileName, int line) {
-	//Current time stamp
-	time_t now = time(NULL);
-	char timestamp[64];
-	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
-	
- 	fprintf(stderr, "[%s] [Error] %s : %d : %s\n", timestamp, fileName, line, strerror(errno));
-}
+/*-------------------------------------------------------------------------------------------------*/
 
-void Sys :: log(const char* fileName, int line, const string& msg) {
+void Sys::log(const char* fileName, int lineNo, const char* logType, const std::string& msg) {
 	//Current time stamp
-	time_t now = time(NULL);
+	time_t now = std::time(NULL);
 	char timestamp[64];
-	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+	std::string line = "[" + std::string(timestamp) + "]";
+       	line += "[" + std::string(logType) + "]";
+      	line += ":" + std::string(fileName);
+       	line += ":" + std::to_string(lineNo);
+	line += ":" + std::string(msg);
+	if(errno){ 
+		line += ":" + std::string(strerror(errno)); 
+		errno = 0;
+	}
 
- 	fprintf(stderr, "[%s] [Info] %s : %d : %s\n", timestamp, fileName, line, msg.c_str());
+	fprintf(stderr, "%s\n", line.c_str());
 }
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -134,12 +128,12 @@ std::string packetTypeToString(packetType type) {
 /*-------------------------------------------------------------------------------------------------*/
 
 struct addr_book {
-	set<n_addr> addr_set; //address list
+	std::set<n_addr> addr_set; //address list
 	
 	//add n_addr and port in addr_set;	
 	void add(n_addr& oth){ 
 		addr_set.insert(oth);  
-		USRLOG(string(inet_ntoa(oth.ip)) + " : " + to_string(oth.port) + " : new address found");
+		SYSLOG(INFO, std::string(inet_ntoa(oth.ip)) + ":" + std::to_string(oth.port) + ":address save");
 	}
 
 	//add in_addr and port in addr_set
@@ -149,7 +143,7 @@ struct addr_book {
 	}
 
 	//add string and port in addr_set
-	void add(const string& ip, unsigned short port){
+	void add(const std::string& ip, unsigned short port){
 		in_addr addr;
 		inet_pton(AF_INET, ip.c_str(), &addr);
 		add(addr, port);

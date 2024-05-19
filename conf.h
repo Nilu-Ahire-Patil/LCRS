@@ -52,14 +52,14 @@ class Conf : public Sys{
 			return confData;
 		}
 
-		static int initInt(string key, char* line){
+		static int initInt(const string& key, char* line){
 			string format = key + DELIMITER;
 			string fullFormat = format + "%d";
 
 			int value = -1;
-        		if (strncmp(line, format.c_str(), format.length()) == 0){
+        		if(strncmp(line, format.c_str(), format.length()) == 0){
         	    		sscanf(line, fullFormat.c_str(), &value);
-				if(value >= 0){ Conf :: confData[key] = value; }
+				if(value >= 0){ setInfo<int>(key, value); }
 				else{ return -1; }
         		}
 			else{ return -1; }
@@ -67,15 +67,14 @@ class Conf : public Sys{
 			return 0;
 		}
 
-		static int initString(string key, char* line){
-
+		static int initString(const string& key, char* line){
 			string format = key + DELIMITER;
 			string fullFormat = format + "%s";
 
 			char value[MAX_LINE_LENGTH] = { '\0' };
-        		if (strncmp(line, format.c_str(), format.length()) == 0){
+        		if(strncmp(line, format.c_str(), format.length()) == 0){
         	    		sscanf(line, fullFormat.c_str(), &value);
-				if(value[0] != '\0'){ Conf :: confData[key] = value; }
+				if(value[0] != '\0'){ setInfo<string>(key, value); }
 				else{ return -1; }
         		}
 			else{ return -1; }
@@ -83,7 +82,7 @@ class Conf : public Sys{
 			return 0;
 		}
 
-		static int initIntSet(string key, char* line){
+		static int initIntSet(const string& key, char* line){
 			string format = key + DELIMITER + "{";
 			string fullFormat = format;
 
@@ -96,14 +95,13 @@ class Conf : public Sys{
 					if(val > 0){ value.insert(val); }
                 			token = strtok(NULL, "{}, ");
 				}
-				if(value.size() > 0){ confData[key] = value; USRLOG("int set loaded"); }
+				if(value.size() > 0){ setInfo<set<int>>(key, value); SYSLOG(INFO, "int set loaded"); }
 			}
 			else{ return -1; }
 			return 0;
          	}
 
-		static int initStringSet(string key, char* line){
-
+		static int initStringSet(const string& key, char* line){
 			string format = key + DELIMITER + "{";
 			string fullFormat = format;
 
@@ -117,7 +115,7 @@ class Conf : public Sys{
 					delete[] val;
                 			token = strtok(NULL, "{}, ");
 				}
-				if(value.size() > 0){ confData[key] = value; USRLOG("string set loaded"); }
+				if(value.size() > 0){ setInfo<set<string>>(key, value); SYSLOG(INFO, "string set loaded"); }
 			}
 			else{ return -1; }
 			return 0;
@@ -126,10 +124,10 @@ class Conf : public Sys{
 	public:
 
 		static int initConf(const string& confFilePath){
-			if(confFilePath.empty()){ SYSLOG; STOP; }
+			if(confFilePath.empty()){ STOP(ERROR, ""); }
 
 			FILE *confFile;
-       			if((confFile = fopen(confFilePath.c_str(), "r")) == NULL){ SYSLOG; return -1; }
+       			if((confFile = fopen(confFilePath.c_str(), "r")) == NULL){ STOP(ERROR, ""); }
 
 			char line[MAX_LINE_LENGTH] = { '\0' };
     			while(fgets(line, sizeof(line), confFile) != NULL){
@@ -147,10 +145,10 @@ class Conf : public Sys{
 		}
 
 		template <typename T>
-		static T getInfo(string key){ return get<T>(confData[key]); }
+		static T getInfo(const string& key){ return get<T>(confData[key]); }
 
 		template <typename T>
-		static void setInfo(string key, T value){ confData[key] = value; }
+		static void setInfo(const string& key, T value){ confData[key] = value; }
 
 		static addr_book a_book;
 };

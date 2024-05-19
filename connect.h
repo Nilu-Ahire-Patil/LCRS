@@ -1,10 +1,7 @@
-//#pragma once
-
-//#include "server.h"
-
+#pragma once
 #include "conf.h"
-//#include "addrList.h"
 #include "network.h"
+
 #define DEFAULT_CONFIGURATION_FILE_PATH "init.conf"
 
 class Connect : public Conf {
@@ -28,9 +25,9 @@ class Connect : public Conf {
 
 		Connect(){
 			Network nt;
-			if((this->soc = nt.setTcpListenPort()) < 0){ SYSLOG; STOP; }
-			if(Conf :: getInfo<unsigned short>(LP) == 0){ SYSLOG; STOP; }
-			if(nt.updateAddrSet(Conf :: getInfo<unsigned short>(LP)) < 0){ SYSLOG; STOP; }
+			if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, ""); }
+			if(Conf :: getInfo<unsigned short>(LP) == 0){ STOP(ERROR, ""); }
+			if(nt.updateAddrSet(Conf :: getInfo<unsigned short>(LP)) < 0){ STOP(ERROR, ""); }
 		}
 
 		Connect(const char* confFilePath){
@@ -42,7 +39,7 @@ class Connect : public Conf {
 int Connect :: initialize(){
 	Network nt;
 	nt.receveAndProcessTcp(this->soc);
-	USRLOG("p2p connection listening stop");
+	SYSLOG(INFO, "p2p connection listening stop");
 
 	return soc;
 }
