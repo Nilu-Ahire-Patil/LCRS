@@ -107,7 +107,7 @@ struct packet {
 	void init(packetType type, void* data, unsigned int size){
 		this->header.type = type;
 		this->header.length = size;
-		this->data = new char[size];
+		this->data = new char[size]{ '\0' };
 		memcpy(this->data, data, size);
 	}
 	

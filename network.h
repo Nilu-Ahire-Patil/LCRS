@@ -4,7 +4,7 @@
 //#include <set>
 //#include <iostream>
 //#include <cstring>
-#include <unistd.h>
+//#include <unistd.h>
 #include <thread>
 #include "conf.h"
 
@@ -31,7 +31,7 @@ class Network : public Conf {
 
 		int setTcpListenPort();
 		void receveAndProcessTcp(int);
-
+		
 	//	int listenTcp();
 	//	int acceptTcp(int);
 
@@ -55,8 +55,8 @@ int Network :: getBroadcastSocket(){
 		STOP(ERROR, "fail to set broadcast option"); 
 	}
 
-	// set multicast option to socket
-	int TTL = 1;
+	// set time to leave value for routing the packet
+	int TTL = 99;
 	if(setsockopt(soc, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&TTL , sizeof(TTL)) < 0){ 
 		STOP(ERROR, "fail to set multicast option"); 
 	}
@@ -92,12 +92,12 @@ int Network :: bindUdp(int soc){
 			++it; 
 		}
 		else { 
-			SYSLOG(SUCCESS, "UDP port configure:" + std::to_string(*it)); 
+			SYSLOG(SUCCESS, std::to_string(*it) + ":UDP port configure:" ); 
 			break; 
 		}
 	}
 	if(it == ports.end()){ 
-		STOP(INFO, "all udp port's already used"); 
+		STOP(ERROR, "all udp port's already used"); 
 	}
 
 	return soc;
@@ -313,12 +313,12 @@ int Network :: bindAndSetTcpPort(int soc){
 		}
 		else{
 			Conf :: setInfo<unsigned short>(LP, (unsigned short)*it);
-			SYSLOG(SUCCESS, "tcp port configure to : " + to_string(*it));
+			SYSLOG(SUCCESS, to_string(*it) + ":tcp port configure" );
 			break;
 		}
 	}
 	if(it == ports.end()){ 
-		STOP(INFO, "Running Out Of TCP Port"); 
+		STOP(ERROR, "running out of tcp port"); 
 	}
 
 	return soc;
@@ -340,7 +340,7 @@ int Network :: listenTcp(int soc){
 
 // receive client and processes their packets
 void Network :: receveAndProcessTcp(int soc){
-	if(soc < 0){ STOP(ERROR, ""); }
+	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
 
 	// sender address
     	sockaddr_in sender_addr = { 0 };

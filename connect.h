@@ -24,6 +24,7 @@ class Connect : public Conf {
 	*/
 
 		Connect(){
+			Conf :: initConf();
 			Network nt;
 			if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, ""); }
 			if(Conf :: getInfo<unsigned short>(LP) == 0){ STOP(ERROR, ""); }
@@ -32,14 +33,25 @@ class Connect : public Conf {
 
 		Connect(const char* confFilePath){
 			Conf :: initConf(confFilePath);
-			Connect();
+			Network nt;
+			if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, ""); }
+			if(Conf :: getInfo<unsigned short>(LP) == 0){ STOP(ERROR, ""); }
+			if(nt.updateAddrSet(Conf :: getInfo<unsigned short>(LP)) < 0){ STOP(ERROR, ""); }
 		}
 };	
 
 int Connect :: initialize(){
-	Network nt;
-	nt.receveAndProcessTcp(this->soc);
-	SYSLOG(INFO, "p2p connection listening stop");
+
+	//replying tcp packets
+        thread tcpReplying([this](){ 
+			Network nt;
+			nt.receveAndProcessTcp(this->soc); 
+		});
+	tcpReplying.detach();
+
+	//Network nt;
+	//nt.receveAndProcessTcp(this->soc);
+	//SYSLOG(INFO, "p2p connection listening stop");
 
 	return soc;
 }
