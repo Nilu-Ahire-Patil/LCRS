@@ -54,6 +54,10 @@ struct n_addr {
 	}
 
 	n_addr(in_addr ip, unsigned short port) : ip(ip), port(port) {}
+
+	n_addr(std::string& ip, unsigned short port) : port(port) {
+		this->ip.s_addr = inet_addr(ip.c_str());
+	}
 };
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -61,6 +65,7 @@ struct n_addr {
 enum class packetType { 
 	Unknown = 0x00,
 	UdpHandshake = 0x01,
+	Message = 0x03
 };
 
 struct packetHeader {
@@ -121,6 +126,7 @@ std::string packetTypeToString(packetType type) {
     switch (type) {
         case packetType::Unknown: return "Unknown";
         case packetType::UdpHandshake: return "UdpHandshake";
+        case packetType::Message: return "Message";
         default: return "..?";
     }
 }

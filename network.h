@@ -12,6 +12,8 @@ using namespace std;
 
 class Network : public Conf {
 
+		void processPacket(packet&, sockaddr_in&);
+
 		int getBroadcastSocket();
 		int bindUdp(int);
 		int broadcast(packet&);
@@ -21,9 +23,9 @@ class Network : public Conf {
 		int getTcpSocket();
 		int bindAndSetTcpPort(int);
 		int listenTcp(int);
-	//	int bindTcp();
+		int connectTcp(int, in_addr&, unsigned short);
+	//	int bindTcp(int);
 	
-		void processPacket(packet, sockaddr_in);
 
 	public:
 
@@ -31,13 +33,28 @@ class Network : public Conf {
 
 		int setTcpListenPort();
 		void receveAndProcessTcp(int);
+
+		int sendTcpPacket(packet&, n_addr&);
 		
 	//	int listenTcp();
 	//	int acceptTcp(int);
 
 	//	int connectTcp(int, in_addr);
-	//	int connectTcp(int, in_addr, unsigned short);
 };
+
+/*-------------------------------------------------------------------------------------------------*/
+
+// takes an packet as input and process according that packet type
+void Network :: processPacket(packet& pkt, sockaddr_in& sender_addr){
+	switch(pkt.getType()){
+		case packetType :: Unknown : SYSLOG(INFO, "unknown packet to process"); break;
+		case packetType :: UdpHandshake : Conf :: a_book.add(sender_addr.sin_addr,*(unsigned short*)pkt.data); break;
+		case packetType :: Message : SYSLOG(INFO, "Message receive");
+					     std::cout << (char*) pkt.data << endl;
+					     break;
+		default : SYSLOG(INFO, "packet type can't identified");
+	}
+}
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -159,7 +176,7 @@ int Network :: broadcast(packet& pkt){
 }
 
 // join an udp socket to one available multicast group
-int Network :: joinSingleMulticastGroup(int soc){
+int Network::joinSingleMulticastGroup(int soc){
 	if(soc < 0){ 
 		STOP(ERROR, "socket not set properly"); 
 	}
@@ -171,7 +188,9 @@ int Network :: joinSingleMulticastGroup(int soc){
 	// get multicast group addresses
 	set<string> bga = getInfo<set<string>>(BGA);
 
-	if(bga.empty()){ STOP(ERROR, "no multicast group found"); }
+	if(bga.empty()){ 
+		STOP(ERROR, "no multicast group found"); 
+	}
 
 	// try to join one multicast group
 	set<string>::iterator it = bga.begin(); 
@@ -181,7 +200,7 @@ int Network :: joinSingleMulticastGroup(int soc){
 
 		// joining the multicast group
 		if(setsockopt(soc, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0){ 
-			SYSLOG(WARN, *it + ":fail to join multicast group"); 
+			SYSLOG(ERROR, *it + ":fail to join multicast group"); 
 		}
 		else{ 
 			SYSLOG(SUCCESS, *it + ":multicast group join"); 
@@ -190,7 +209,7 @@ int Network :: joinSingleMulticastGroup(int soc){
 		++it;
 	}
 	if(it == bga.end()){ 
-		STOP(WARN, "running out of multicast groups"); 
+		STOP(ERROR, "running out of multicast groups"); 
 	}
 
 	return -1;
@@ -234,21 +253,12 @@ void Network :: receveAndProcessUdp(int soc){
     	close(soc);
 }
 
-// takes an packet as input and process according that packet type
-void Network :: processPacket(packet pkt, sockaddr_in sender_addr){
-	switch(pkt.getType()){
-		case packetType :: UdpHandshake : Conf :: a_book.add(sender_addr.sin_addr,*(unsigned short*)pkt.data); break;
-		case packetType :: Unknown : SYSLOG(INFO, "unknown packet to process"); break;
-		default : SYSLOG(INFO, "packet type can't identified");
-	}
-}
-
 // broadcast our listening port to all connected groups and all available ports 
-int Network :: updateAddrSet(unsigned short listening_port){
+int Network::updateAddrSet(unsigned short listening_port){
 	//creating packet of listening port with port flag
 	packet pkt;
 	//initialise packet;
-	pkt.init(packetType :: UdpHandshake, &listening_port, sizeof(unsigned short));
+	pkt.init(packetType::UdpHandshake, &listening_port, sizeof(unsigned short));
 	//send listening port in broadcast
 	if(broadcast(pkt) < 0){ 
 		STOP(ERROR, "broadcasting failed"); 
@@ -363,6 +373,11 @@ void Network :: receveAndProcessTcp(int soc){
 			SYSLOG(WARN, "fail to accept message"); 
 			continue; 
 		}
+		else {
+			SYSLOG(SUCCESS, to_string(recv_byte) + " bytes received");
+		}
+
+		cout << buffer << endl;
 
 		// we can send acknowledgement 
 
@@ -374,9 +389,10 @@ void Network :: receveAndProcessTcp(int soc){
 		pkt.deserialize(buffer);
 		// check packet is complete or not
 		if(recv_byte != sizeof(packetHeader) + pkt.getSize()){ 
-			SYSLOG(INFO, "incomplete packet found"); 
-			continue; 
+			SYSLOG(INFO, to_string(sizeof(packetHeader) + pkt.getSize()) + " incomplete packet found"); 
+		//	continue; 
 		}
+
 		SYSLOG(SUCCESS, string(inet_ntoa(sender_addr.sin_addr)) + " : "
 			       	+ packetTypeToString(pkt.getType()) + " : " + to_string(recv_byte) + " Bytes");
 
@@ -397,6 +413,56 @@ int Network :: setTcpListenPort(){
 	}
 
 	return soc;
+}
+
+int Network :: connectTcp(int soc, in_addr& ip, unsigned short port){
+	if(soc < 0) return soc;
+
+	sockaddr_in s_addr;
+	socklen_t s_addr_len = sizeof(s_addr);
+
+	memset(&s_addr, 0, sizeof(sockaddr_in));
+	s_addr.sin_family = AF_INET;
+	s_addr.sin_port = htons(port);
+	s_addr.sin_addr = ip;
+
+	if(connect(soc,(sockaddr*) &s_addr, s_addr_len) < 0) { 
+		SYSLOG(ERROR, ""); 
+		return -1;
+	}
+
+	return soc;
+}
+
+int Network :: sendTcpPacket(packet& pkt, n_addr& receiver_addr){
+	int soc = -1;
+	if((soc = getTcpSocket()) < 0){ 
+		SYSLOG(ERROR, "socket not set properly"); 
+		close(soc);
+		return -1;
+	}
+	
+	if((soc = connectTcp(soc, receiver_addr.ip , receiver_addr.port)) < 0){
+		SYSLOG(ERROR, "connection not establish"); 
+		close(soc);
+		return -1;
+	}
+
+	int send_Bytes = 0;
+	SYSLOG(SUCCESS, to_string(pkt.getSize()) + " packet size");
+	if((send_Bytes = send(soc, pkt.serialize(), pkt.getSize() + sizeof(packetHeader), 0)) <= 0){
+		SYSLOG(ERROR, "message send fail");
+		close(soc);
+		return -1;
+	}
+	else{
+		SYSLOG(SUCCESS, to_string(send_Bytes) + " bytes send");
+	}
+
+	// we can receive acknowledgement here
+
+	close(soc);
+	return 0;
 }
 
 /*
@@ -467,19 +533,5 @@ int Network :: connectTcp(in_addr ip){
 
 	return soc;
 }
-int Network :: connectTcp(int soc, in_addr ip, unsigned short int port){
-	if(soc < 0) return soc;
 
-	sockaddr_in s_addr;
-	socklen_t s_addr_len = sizeof(s_addr);
-
-	memset(&s_addr, 0, sizeof(sockaddr_in));
-	s_addr.sin_family = AF_INET;
-	s_addr.sin_port = htons(port);
-	s_addr.sin_addr = ip;
-
-	if(connect(soc,(sockaddr*) &s_addr, s_addr_len) < 0) { SYSLOG;}
-
-	return soc;
-}
 */
