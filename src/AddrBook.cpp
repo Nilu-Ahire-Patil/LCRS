@@ -1,12 +1,10 @@
 #ifndef ADDRBOOK_IMPL_H
 #define ADDRBOOK_IMPL_H
 
-#ifndef ADDRBOOK_H
-#include "../include/AddrBook.h"	//Interface
-#endif
+#include "AddrBook.h"		//Interface
 
-#include <set>
-#include <string>
+#include <set>			// set
+#include <string>		// string
 
 /*-------------------------------------------------------------------------------------------------*/
 

@@ -1,22 +1,14 @@
 #ifndef CONFIG_IMPL_H
 #define CONFIG_IMPL_H
 
-#ifndef CONFIG_H
-#include "../include/Configure.h"	//interface
-#endif
+#include "Configure.h"		//interface
+#include "AddrBook.h"		//addr_book
+#include "Sys.h"		//SYSLOG, STOP
 
-#ifndef ADDRBOOK_H
-#include "../include/AddrBook.h"	//addr_book
-#endif
-
-#ifndef SYS_H
-#include "../include/Sys.h"		//SYSLOG, STOP
-#endif
-
-#include <unistd.h> 	// close
-#include <sys/ioctl.h>	// ioctl
-#include <net/if.h>	// ifreq
-#include <cstring>	//strtok
+#include <unistd.h> 		// close
+#include <sys/ioctl.h>		// ioctl
+#include <net/if.h>		// ifreq
+#include <cstring>		//strtok
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -28,6 +20,7 @@ addr_book Conf::a_book;
 
 /*-------------------------------------------------------------------------------------------------*/
 
+// load default configuration in confData variable
 std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
 		std::vector<int>, std::vector<std::string>, 
 		std::set<int>, std::set<std::string>>> Conf::loadDefaultConfig(){
@@ -45,6 +38,7 @@ std::unordered_map<std::string, std::variant<std::string, int, double, unsigned 
 	return confData;
 }
 
+// finds integer value in line and insert in configuration data with provided key
 int Conf::initInt(const std::string& key, char* line){
 	std::string format = key + DELIMITER;
 	std::string fullFormat = format + "%d";
@@ -56,6 +50,7 @@ int Conf::initInt(const std::string& key, char* line){
 	return -1;
 }
 
+// finds string value in line and insert in configuration data with provided key
 int Conf::initString(const std::string& key, char* line){
 	std::string format = key + DELIMITER;
 	std::string fullFormat = format + "%s";
@@ -68,6 +63,7 @@ int Conf::initString(const std::string& key, char* line){
 	return -1; 
 }
 
+// finds integer set from line and insert in configuration data with provided key
 int Conf::initIntSet(const std::string& key, char* line){
 	std::string format = key + DELIMITER + "{";
 
@@ -88,6 +84,7 @@ int Conf::initIntSet(const std::string& key, char* line){
 	return 0;
 }
 
+// finds string set from line and insert in configuration data with provided key
 int Conf::initStringSet(const std::string& key, char* line){
 	std::string format = key + DELIMITER + "{";
 
@@ -106,6 +103,7 @@ int Conf::initStringSet(const std::string& key, char* line){
 	else { return -1; }
 }
 
+// finds string vector from line and insert in configuration data with provided key
 int Conf::initStringVector(const std::string& key, char* line){
 	std::string format = key + DELIMITER + "{";
 
@@ -125,7 +123,7 @@ int Conf::initStringVector(const std::string& key, char* line){
 	else { return -1; }
 }
 
-
+// finds system interface mac address
 std::string Conf::getInterfaceMacAddress(const std::string& interface) {
 	int soc = -1;
 	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket not set properly"); }
@@ -145,6 +143,7 @@ std::string Conf::getInterfaceMacAddress(const std::string& interface) {
 	return std::string(ifr.ifr_hwaddr.sa_data);
 }
 
+// initialise system id
 void Conf::initSysId(){
 	std::vector<std::string> interfaces = getInfo<std::vector<std::string>>(NET_INTERFACES);
 
@@ -169,6 +168,7 @@ void Conf::initSysId(){
 	if(it == interfaces.end()){ STOP(ERROR, "fail to set system id"); }
 }
 
+// initialise system with default configurstion
 int Conf::initConf(){ 
 	confData = loadDefaultConfig();
 	// set unique system id for uniquely identify in network
@@ -176,6 +176,7 @@ int Conf::initConf(){
 	return 0;
 }
 
+// initialise system with configuration file
 int Conf::initConf(const std::string& confFilePath){
 	if(confFilePath.empty()){ STOP(ERROR, "empty file path"); }
 

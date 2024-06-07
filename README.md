@@ -1,3 +1,44 @@
+'''
+lcrs/
+├── bin/
+│   └── lcrs
+├── build/
+│   └── AddrBook.o
+│   └── Configure.o
+│   └── Connect.o
+│   └── File.o
+│   └── FileInfo.o
+│   └── Network.o
+│   └── Packet.o
+│   └── Sys.o
+├── etc/
+│   └── Init.config
+├── include/
+│   └── AddrBook.h
+│   └── Configure.h
+│   └── Connect.h
+│   └── File.h
+│   └── FileInfo.h
+│   └── Network.h
+│   └── Packet.h
+│   └── Sys.h
+├── lib/
+│   └── lcrs.so
+├── main.cpp
+├── Makefile
+├── README.md
+├── src/
+│   └── AddrBook.cpp
+│   └── Configure.cpp
+│   └── Connect.cpp
+│   └── File.cpp
+│   └── FileInfo.cpp
+│   └── Network.cpp
+│   └── Packet.cpp
+│   └── Sys.cpp
+'''
+
+
 //-----------------LOADING INITIALIZATIONS--------------------//
 
 0.0	initialise default data
@@ -39,8 +80,6 @@
 	update metafile
 
 	after getting whole chunks stored store meta file also
-
-
 
 //-----------------------------------------------------------//
 

@@ -1,16 +1,11 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#ifndef ADDRBOOK_H
-#include "../include/AddrBook.h"	//n_addr
-#endif
+#include "AddrBook.h"		//n_addr
+#include "Packet.h" 		// packet
 
-#ifndef PACKET_H
-#include "../include/Packet.h" 		// packet
-#endif
-
-#include <arpa/inet.h>			// sockaddr_in
-					// in_addr
+#include <arpa/inet.h>		// sockaddr_in
+				// in_addr
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -47,11 +42,11 @@ class Network {
 };
 
 /*-------------------------------------------------------------------------------------------------*/
-
+/*
 #ifndef NETWORK_IMPL_H
 #include "../src/Network.cpp"
 #endif
-
+*/
 #endif
 
 /*-------------------------------------------------------------------------------------------------*/

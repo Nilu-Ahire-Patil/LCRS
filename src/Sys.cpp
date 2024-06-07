@@ -1,19 +1,17 @@
 #ifndef SYS_IMPL_H
 #define SYS_IMPL_H
 
-#ifndef SYS_H
-#include "../include/Sys.h"	// Interface
-#endif
+#include "Sys.h"		// Interface
 
-#include <ctime>	// time
-			// localtime
-			// time_t
-			// strftime
-#include <cerrno>	// errno
-#include <cstring>	// string
-			// strerror
-#include <iostream>	// fprintf
-			// stderr
+#include <ctime>		// time
+				// localtime
+				// time_t
+				// strftime
+#include <cerrno>		// errno
+#include <cstring>		// string
+				// strerror
+#include <iostream>		// fprintf
+				// stderr
 
 /*-------------------------------------------------------------------------------------------------*/
 

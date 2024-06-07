@@ -1,13 +1,11 @@
 #ifndef PACKET_IMPL_H
 #define PACKET_IMPL_H
 
-#ifndef PACKET_H
-#include "../include/Packet.h"	// Interface
-#endif
+#include "Packet.h"		// Interface
 
-#include <arpa/inet.h>	// in_addr
-#include <string>	// string
-#include <cstring>	// memcpy
+#include <arpa/inet.h>		// in_addr
+#include <string>		// string
+#include <cstring>		// memcpy
 
 /*-------------------------------------------------------------------------------------------------*/
 

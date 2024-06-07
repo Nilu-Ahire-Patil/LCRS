@@ -1,15 +1,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifndef ADDRBOOK_H
-#include "../include/AddrBook.h"	//addr_book
-#endif
+#include "AddrBook.h"		//addr_book
 
-#include <variant>			// variant
-#include <string>			// string
-#include <vector>			// vector
-#include <set>				// set
-#include <unordered_map>		// unordered_map
+#include <variant>		// variant
+#include <string>		// string
+#include <vector>		// vector
+#include <set>			// set
+#include <unordered_map>	// unordered_map
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -43,10 +41,12 @@
 
 class Conf {
 	private:
+		// key value base structure for storing system variables and can initialise from file
    		static std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
 			std::vector<int>, std::vector<std::string>, 
 			std::set<int>, std::set<std::string>>> confData;
 
+		// load default configuration in confData variable
    		static std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
 			std::vector<int>, std::vector<std::string>, 
 			std::set<int>, std::set<std::string>>> loadDefaultConfig();
@@ -73,26 +73,30 @@ class Conf {
 		static void initSysId();
 
 	public:
-
+		// initialise system with default configurstion
 		static int initConf();
 
+		// initialise system with configuration file
 		static int initConf(const std::string&);
 
+		// get info by key
 		template <typename T>
 		static T getInfo(const std::string& key){ return std::get<T>(confData[key]); }
 
+		// set info by key
 		template <typename T>
 		static void setInfo(const std::string& key, T value){ confData[key] = value; }
 
+		// address book for store node address
 		static addr_book a_book;
 };
 
 /*-------------------------------------------------------------------------------------------------*/
-
+/*
 #ifndef CONFIG_IMPL_H
 #include "../src/Configure.cpp"
 #endif
-
+*/
 #endif
 
 /*-------------------------------------------------------------------------------------------------*/

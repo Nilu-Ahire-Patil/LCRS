@@ -1,17 +1,11 @@
-#ifndef NODE
-#define NODE
+#ifndef MAIN
+#define MAIN
 
-#ifndef CONNECT_H
-#include "include/Connect.h"	// Connect
-#endif
+#include "Connect.h"	// Connect
 
-#ifndef PACKET_H
-#include "include/Packet.h"	// Packet
-#endif
+#include "Packet.h"	// Packet
 
-#ifndef NETWORK_H
-#include "include/Network.h"	// Network
-#endif
+#include "Network.h"	// Network
 
 #include <string>		// string
 #include <iostream>		// cin, cout

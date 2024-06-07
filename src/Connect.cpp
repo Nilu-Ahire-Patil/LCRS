@@ -1,23 +1,14 @@
 #ifndef CONNECT_IMPL_H
 #define CONNECT_IMPL_H
 
-#ifndef CONFIG_H
-#include "../include/Connect.h"		// interface
-#endif
+#include "Connect.h"		// interface
+#include "Sys.h"		// Network
+#include "Configure.h"		// Conf
+#include "Network.h"		// Network
 
-#ifndef SYS_H
-#include "../include/Sys.h"		// Network
-#endif
+#include <thread>		// thread
 
-#ifndef CONFIG_H
-#include "../include/Configure.h"	// Conf
-#endif
-
-#ifndef NETWORK_H
-#include "../include/Network.h"		// Network
-#endif
-
-#include <thread>			// thread
+/*-------------------------------------------------------------------------------------------------*/
 
 // connect with other nodes with default configuration
 Connect::Connect(){
@@ -48,5 +39,7 @@ int Connect::initialize(){
 
 	return soc;
 }
+
+/*-------------------------------------------------------------------------------------------------*/
 #endif
 

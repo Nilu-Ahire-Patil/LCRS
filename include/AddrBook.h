@@ -1,9 +1,9 @@
 #ifndef ADDRBOOK_H
 #define ADDRBOOK_H
 
-#include <arpa/inet.h>	// in_addr
-#include <string> 	// string
-#include <set>		// set
+#include <arpa/inet.h>		// in_addr
+#include <string> 		// string
+#include <set>			// set
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -45,11 +45,11 @@ struct addr_book {
 };
 
 /*-------------------------------------------------------------------------------------------------*/
-
+/*
 #ifndef ADDRBOOK_IMPL_H
 #include "../src/AddrBook.cpp"
 #endif
-
+*/
 #endif
 
 /*-------------------------------------------------------------------------------------------------*/

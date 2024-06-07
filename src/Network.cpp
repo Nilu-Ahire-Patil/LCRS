@@ -1,21 +1,10 @@
 #ifndef NETWORK_IMPL_H
 #define NETWORK_IMPL_H
 
-#ifndef NETWORK_H
-#include "../include/Network.h"		// interface
-#endif
-
-#ifndef SYS_H
-#include "../include/Configure.h"	//
-#endif
-
-#ifndef PACKET_H
-#include "../include/Packet.h"		// packet
-#endif
-
-#ifndef SYS_H
-#include "../include/Sys.h"		// SYSLOG, STOP
-#endif
+#include "Network.h"		// interface
+#include "Configure.h"		// Conf
+#include "Packet.h"		// packet
+#include "Sys.h"		// SYSLOG, STOP
 
 #include <thread>		// thread
 #include <unistd.h>		// close
@@ -192,7 +181,7 @@ void Network::receveAndProcessUdp(int soc){
 	while(1){
 		// message buffer
 		char buffer[MAX_PACKET_SIZE] = { '\0' };
-		int recv_byte;
+		unsigned int recv_byte;
     		if((recv_byte = recvfrom(soc, buffer, MAX_PACKET_SIZE, 0, 
 				(sockaddr*) &sender_addr, &sender_addr_len)) < 0){ 
 			SYSLOG(WARN, "fail to receive packet"); 
@@ -322,7 +311,7 @@ void Network::receveAndProcessTcp(int soc){
 
 		// receive packet 
 		char buffer[MAX_PACKET_SIZE] = { '\0' };
-		int recv_byte;
+		unsigned int recv_byte;
     		if((recv_byte = recv(csoc, buffer, MAX_PACKET_SIZE, 0)) < 0){ 
 			SYSLOG(WARN, "fail to accept message"); 
 			continue; 
