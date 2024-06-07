@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 '''
 lcrs/
 ├── bin/
@@ -86,3 +87,7 @@ lcrs/
 	automatic detect network interface and configure sys id from that
 	
 conf.h line 172 check note
+=======
+# LCRSS
+Loosely Coupled Resilient Storage
+>>>>>>> origin/main
