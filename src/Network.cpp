@@ -171,8 +171,16 @@ int Network::joinSingleMulticastGroup(int soc){
 }
 
 // receive an packet and take action according its type
-void Network::receveAndProcessUdp(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+void Network::receveAndProcessUdp(){
+	int soc = -1;
+	// get socket with broadcast permition
+	if((soc = getBroadcastSocket()) < 0){ STOP(ERROR, "socket fail"); }
+
+	// bind with avalaible port
+	if((soc = bindUdp(soc)) < 0){ STOP(ERROR, "bind fail"); }
+
+	// join with single multicast group
+	if((soc = joinSingleMulticastGroup(soc)) < 0){ STOP(ERROR, "group join fail"); }
 
 	// sender address
     	sockaddr_in sender_addr = { 0 };
@@ -188,9 +196,10 @@ void Network::receveAndProcessUdp(int soc){
 			continue; 
 		}
 
-		packet pkt;
 		// convert received message to buffer
-		pkt.deserialize(buffer);
+		packet pkt(buffer);
+		// pkt.deserialize(buffer);
+
 		// check packet is complete or not
 		if(recv_byte != pkt.size()){ 
 			SYSLOG(WARN, "incomplete packet found"); 
@@ -203,11 +212,11 @@ void Network::receveAndProcessUdp(int soc){
 		processPacket(pkt, sender_addr);
 
 		// free packet buffer data;
-		pkt.freePacketData();
+		// pkt.freePacketData();
 	}
     	close(soc);
 }
-
+/*
 // broadcast our listening port to all connected groups and all available ports 
 int Network::updateAddrSet(unsigned short listening_port){
 	//creating packet of listening port with port flag
@@ -226,7 +235,7 @@ int Network::updateAddrSet(unsigned short listening_port){
 	
 	return soc;
 }
-
+*/
 /*-------------------------------------------------------------------------------------------------*/
 
 // returns an tcp socket
@@ -323,9 +332,10 @@ void Network::receveAndProcessTcp(int soc){
 		// close connection with sender
 		close(csoc);
 
-		packet pkt;
 		// convert received message to buffer
-		pkt.deserialize(buffer);
+		packet pkt(buffer);
+		// pkt.deserialize(buffer);
+
 		// check packet is complete or not
 		if(recv_byte != pkt.size()){ 
 			SYSLOG(INFO, std::to_string(pkt.size()) + " incomplete packet found"); 
@@ -339,7 +349,7 @@ void Network::receveAndProcessTcp(int soc){
 		processPacket(pkt, sender_addr);
 
 		// free packet buffer data;
-		pkt.freePacketData();
+		// pkt.freePacketData();
 	}
     	close(soc);
 }

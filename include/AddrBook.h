@@ -9,8 +9,8 @@
 
 struct n_addr {
 	private:
-		in_addr _ip = { 0 };				// node ip address
-		unsigned short _port = { 0 };			// node port
+		in_addr _ip = { 0 };			// node ip address
+		unsigned short _port = { 0 };		// node port
 
 	public:
 		bool operator<(const n_addr&) const;  	// compare two nodes

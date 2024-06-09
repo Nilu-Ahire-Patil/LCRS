@@ -54,6 +54,9 @@ struct packet {
 		// set packet data
 		void data(char*);
 
+		// default constructor
+		packet();
+
 	public:
 
 		// return complete size of packet including header
@@ -78,16 +81,16 @@ struct packet {
 		char* serialize() const;
 
 		// convert continuous memory block of character to packet
-		void deserialize(const char* buffer);
+		packet(const char* buffer);
 
 		// remove reserve memory used by packet data
-		void freePacketData();
+		//void freePacketData();
 
 		// initialise packet
 		packet(packetType, void*, unsigned int);
 
 		// default constructor
-		packet();
+		~packet();
 };
 
 /*-------------------------------------------------------------------------------------------------*/

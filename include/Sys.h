@@ -30,6 +30,8 @@ class Sys {
 		//prints system error
 		static void log(const char*, int, const char*, const std::string&);
 
+		// gives current date in YYYYMMDD this format
+		static std::string getCurrentDateString();
 };
 
 /*-------------------------------------------------------------------------------------------------*/

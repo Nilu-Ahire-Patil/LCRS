@@ -12,6 +12,8 @@
 				// strerror
 #include <iostream>		// fprintf
 				// stderr
+#include <iomanip>
+#include <sstream>
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -37,6 +39,22 @@ void Sys::log(const char* fileName, int lineNo, const char* logType, const std::
 
 	// print system log in standeard error file
 	fprintf(stderr, "%s\n", line.c_str());
+	fflush(stderr);
+}
+
+std::string Sys::getCurrentDateString() {
+    // Get current time
+    std::time_t t = std::time(nullptr);
+
+    // Convert to local time
+    std::tm* localTime = std::localtime(&t);
+
+    // Create a string stream to format the date
+    std::ostringstream oss;
+    oss << std::put_time(localTime, "%Y-%m-%d");
+
+    // Return the formatted string
+    return oss.str();
 }
 
 /*-------------------------------------------------------------------------------------------------*/

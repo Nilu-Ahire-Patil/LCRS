@@ -1,11 +1,10 @@
 #ifndef MAIN
 #define MAIN
 
-#include "Connect.h"	// Connect
-
-#include "Packet.h"	// Packet
-
-#include "Network.h"	// Network
+#include "Sys.h"		// getCurrentDateString
+#include "Connect.h"		// Connect
+#include "Packet.h"		// Packet
+#include "Network.h"		// Network
 
 #include <string>		// string
 #include <iostream>		// cin, cout
@@ -13,6 +12,13 @@
 
 int main(int argc, char** argv)
 {
+	// Redirect stderr to a file
+	FILE* file = nullptr;
+	std::string logFilePath = "log/" + Sys::getCurrentDateString() +".log";
+	if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
+        	std::cerr << "Failed to redirect stderr to file" << std::endl;
+	}
+
 	if(argc < 2){ Connect cn; cn.initialize(); }
 	else { Connect cn(argv[1]); cn.initialize(); }
 
@@ -36,7 +42,7 @@ int main(int argc, char** argv)
 
 		nt.sendTcpPacket(pkt, addr);
 		
-		pkt.freePacketData();
+	//	pkt.freePacketData();
 	}
 
 	getchar();

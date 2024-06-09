@@ -15,9 +15,7 @@ class Network {
 
 		int getBroadcastSocket();
 		int bindUdp(int);
-		int broadcast(packet&);
 		int joinSingleMulticastGroup(int);
-		void receveAndProcessUdp(int);
 
 		int getTcpSocket();
 		int bindAndSetTcpPort(int);
@@ -25,14 +23,16 @@ class Network {
 		int connectTcp(int, in_addr, unsigned short);
 	//	int bindTcp(int);
 	
+	//	int updateAddrSet(unsigned short);
 
 	public:
 
-		int updateAddrSet(unsigned short);
 
 		int setTcpListenPort();
+		void receveAndProcessUdp();
 		void receveAndProcessTcp(int);
 
+		int broadcast(packet&);
 		int sendTcpPacket(packet&, n_addr&);
 		
 	//	int listenTcp();

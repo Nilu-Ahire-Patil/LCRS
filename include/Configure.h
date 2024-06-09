@@ -10,10 +10,13 @@
 #include <unordered_map>	// unordered_map
 
 /*-------------------------------------------------------------------------------------------------*/
+#define DEFAULT_CONFIG_PATH "etc/lcrs.config"
 
 #define MAX_PACKET_SIZE 1024
 #define MAX_LINE_LENGTH 100
 #define DELIMITER 	" = "
+#define NAMESPACE_DNS 	"6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+
 
 #define LP 		"LISTNING_PORT"
 #define SYS_ID		"SYS_ID"
@@ -34,8 +37,8 @@
 
 // interface set for mac address
 // order of interfaces matters
-#define NET_INTERFACES	"network_interfaces"
-#define V_NET_INTERFACES "wlp3s0", "enp0s31f6" 
+// #define NET_INTERFACES	"network_interfaces"
+// #define V_NET_INTERFACES "wlp3s0", "enp0s31f6" 
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -65,6 +68,9 @@ class Conf {
 
 		// finds string vector from line and insert in configuration data with provided key
 		static int initStringVector(const std::string& key, char* line);
+
+		// finds system interface mac address
+		static std::string getMacAddress();
 
 		// finds system interface mac address
 		static std::string getInterfaceMacAddress(const std::string&);

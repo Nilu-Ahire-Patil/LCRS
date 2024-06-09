@@ -69,7 +69,7 @@ char* packet::serialize() const {
 }
 
 // converts continuous memory block of character to packet
-void packet::deserialize(const char* buffer) {
+packet::packet(const char* buffer) {
 	// copy header data
 	memcpy(&this->_header, buffer, this->headerSize());
 
@@ -87,11 +87,14 @@ packet::packet(packetType type, void* data, unsigned int size): _header(type, si
 	memcpy(this->_data, data, size);
 }
 
-// defauult constructor
+// default constructor
 packet::packet(){}
+
+// default distructor
+packet::~packet(){ if(this->_data != nullptr){ delete[] this->_data; this->data(nullptr); } }
 	
 // removes reserve memory used by packet data
-void packet::freePacketData(){ delete[] this->_data; this->data(nullptr); }
+// void packet::freePacketData(){ delete[] this->_data; this->data(nullptr); }
 
 /*-------------------------------------------------------------------------------------------------*/
 
