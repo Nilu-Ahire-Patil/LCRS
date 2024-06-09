@@ -23,58 +23,57 @@ Ensure you have the following installed:
 ### Build Instructions
 
 1. **Compile the Project:**
+```sh
+make all
+```
 
-    ```sh
-    make all
-    ```
+3. **Install the Executable and Library:**
 
-2. **Install the Executable and Library:**
-
-    ```sh
-    sudo make install
-    ```
+```sh
+sudo make install
+```
 
 ### Cleaning Up
 
 1. **To clean up the build files:**
 
-	```sh
-	make clean
-	```
+```sh
+make clean
+```
 2. **Uninstall the Executable and Library:**
 
-    ```sh
-    sudo make uninstall
-    ```
+```sh
+sudo make uninstall
+```
 
 ### Configuration
 
-	Configuration settings can be found and modified in the etc/Init.config file. Ensure that this file is correctly set up before running the executable.
+Configuration settings can be found and modified in the etc/Init.config file. Ensure that this file is correctly set up before running the executable.
 
 ### Usage
 
-	After building and installing, you can run the LCRS executable:
+After building and installing, you can run the LCRS executable:
 	
-	```sh
-	./bin/lcrs
-	```
-	Ensure the shared library lcrs.so is in the correct location (/usr/local/lib by default if installed using make install).
+```sh
+./bin/lcrs
+```
+Ensure the shared library lcrs.so is in the correct location (/usr/local/lib by default if installed using make install).
 
 ### Acknowledgements
-	Nilesh Nandkishor Ahire - Project Creator
+Nilesh Nandkishor Ahire - Project Creator
 
 ### Contact
-	For any questions or inquiries, please reach out to 
+For any questions or inquiries, please reach out to 
 
-	```Mail
-	niluahirepatil@gmail.com
-	```
-## Directory Structure
+```Mail
+niluahirepatil@gmail.com
 ```
-lcrs/
-├── bin/
+## Directory Structure
+```python3
+lcrs/			# project folder
+├── bin/		# executables
 │   └── lcrs
-├── build/
+├── build/		# object files
 │   └── AddrBook.o
 │   └── Configure.o
 │   └── Connect.o
@@ -83,9 +82,9 @@ lcrs/
 │   └── Network.o
 │   └── Packet.o
 │   └── Sys.o
-├── etc/
+├── etc/		# configuration files
 │   └── Init.config
-├── include/
+├── include/		# library interfaces
 │   └── AddrBook.h
 │   └── Configure.h
 │   └── Connect.h
@@ -94,59 +93,59 @@ lcrs/
 │   └── Network.h
 │   └── Packet.h
 │   └── Sys.h
-├── lib/
+├── lib/		# shared library
 │   └── lcrs.so
-├── main.cpp
-├── Makefile
-├── README.md
-├── src/
-│   └── AddrBook.cpp
-│   └── Configure.cpp
-│   └── Connect.cpp
-│   └── File.cpp
-│   └── FileInfo.cpp
-│   └── Network.cpp
-│   └── Packet.cpp
-│   └── Sys.cpp
+├── main.cpp		# starting file
+├── Makefile		# dependencies and compile files
+├── README.md		# compiling and working explenation
+└── src/		# library implementations
+    └── AddrBook.cpp
+    └── Configure.cpp
+    └── Connect.cpp
+    └── File.cpp
+    └── FileInfo.cpp
+    └── Network.cpp
+    └── Packet.cpp
+    └── Sys.cpp
 ```
 
-### Working
+## Working
 
-**LOADING INITIALIZATIONS**
+- **LOADING INITIALIZATIONS**
+1.	initialise default internal data
+2.	check for configuration file
+3.	load configuration if file present
 
-0.0	*initialise default data*
-0.1	*check for configuration file*
-0.2	load configuration in file present
-
-1.0	create a tcp socket and try to bind it with
+- **GREATING SETUP**
+1.	create a tcp socket and try to bind it with
 	specific port provided by user or default 
 
-2.0	multicast the tcp port that we bond to socket 
+2.	multicast the tcp port that we bond to socket 
 	in step 1.0 to specific group provided by user
 	or default
 
-** BACKGROUND CONNECTIONS **
+- **BACKGROUND CONNECTIONS**
 
-3.0	crate an listening socket, join to specific 
-	multicast group provided by user or default
-3.1	receive requests from others and work according 
+1.	crate an listening socket, join to specific 
+	multicast group provided by user or defaul
+2.	receive requests from others and work according 
 	to that type of request is receive
-3.2	update sender address in our address book
+3.	update sender address in our address book
 
-4.0	listen on the socket that we created in step no 1.0
-4.1	accept connections and work according to packet type
-4.2	update sender address in our address book
+4.	listen on the socket that we created in step no 1.0
+5.	accept connections and work according to packet type
+6.	update sender address in our address book
 
-** STORING FILE **
+- **STORING FILE**
 
-5.0 	locate file
-	decide chunk size
-	create metadata file
-	request receiver for each chunk of file
-	decide transfer file chunk to which receiver
-	update metafile
-	after getting whole chunks stored store meta file also
-	automatic detect network interface and configure sys id from that
+1.	locate file
+2.	decide chunk size
+3.	create metadata file
+4.	request receiver for each chunk of file
+5.	decide transfer file chunk to which receiver
+6.	update metafile
+7.	after getting whole chunks stored store meta file also
+8.	automatic detect network interface and configure sys id from that
 	
 conf.h line 172 check note
 
