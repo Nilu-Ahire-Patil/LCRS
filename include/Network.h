@@ -21,14 +21,17 @@ class Network {
 		int bindAndSetTcpPort(int);
 		int listenTcp(int);
 		int connectTcp(int, in_addr, unsigned short);
+
 	//	int bindTcp(int);
-	
 	//	int updateAddrSet(unsigned short);
 
 	public:
 
+		std::string getMacAddress();
+		std::string getInterfaceMacAddress(const std::string&);
 
 		int setTcpListenPort();
+
 		void receveAndProcessUdp();
 		void receveAndProcessTcp(int);
 
@@ -37,7 +40,6 @@ class Network {
 		
 	//	int listenTcp();
 	//	int acceptTcp(int);
-
 	//	int connectTcp(int, in_addr);
 };
 

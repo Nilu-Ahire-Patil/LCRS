@@ -3,18 +3,12 @@
 
 #include "Configure.h"		// interface
 #include "Sys.h"		// SYSLOG, STOP
+#include "Network.h"
 
 #include <unistd.h> 		// close
-#include <sys/ioctl.h>		// ioctl
-				// SIOCGIFHWADDR
-#include <net/if.h>		// ifreq
-				// ifr
-				// IFF_LOOPBACK
 #include <cstring>		// strtok
 				// strncpy
-#include <ifaddrs.h> 		// getifaddrs
-				// freeifaddrs
-#include <uuid/uuid.h> 		// UUID
+#include <uuid/uuid.h> 		// uuid_t
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -137,74 +131,6 @@ int Conf::initStringVector(const std::string& key, char* line){
 	else { return -1; }
 }
 
-// get mac address of any ailable not selfloop back interface mac address
-std::string Conf::getMacAddress(){
-    	int soc = -1;
-    	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket creation fail"); }
-
-    	ifaddrs *ifaddr;
-
-    	if(getifaddrs(&ifaddr) < 0){ STOP(ERROR, "fail to find network interfaces"); }
-
-
-    	ifreq ifr;
-	ifaddrs *ifa = ifaddr;
-    	while(ifa != nullptr){
-        	if(ifa->ifa_addr == nullptr || (ifa->ifa_flags & IFF_LOOPBACK) != 0){
-			ifa = ifa->ifa_next;
-            		continue;
-        	}
-
-        	strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ - 1);
-        	if(ioctl(soc, SIOCGIFHWADDR, &ifr) == -1){
-			ifa = ifa->ifa_next;
-            		continue;
-        	}
-
-        	close(soc);
-        	freeifaddrs(ifaddr);
-
-        	char mac_address[18] = {0};
-        	sprintf(mac_address, "%02x:%02x:%02x:%02x:%02x:%02x",
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[0],
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[1],
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[2],
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[3],
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[4],
-                	(unsigned char) ifr.ifr_hwaddr.sa_data[5]);
-
-		SYSLOG(INFO, "interface : " + std::string(ifr.ifr_name));
-		SYSLOG(INFO, "mac address : " + std::string(mac_address));
-        
-        	return std::string(mac_address);
-    	}
-
-    	close(soc);
-    	freeifaddrs(ifaddr);
-
-    	return "";
-}
-
-// finds system interface mac address
-std::string Conf::getInterfaceMacAddress(const std::string& interface) {
-	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket not set properly"); }
-
-	ifreq ifr;
-	// copy interface name 
-	strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
-	// request for ip address of that interface
-	if (ioctl(soc, SIOCGIFHWADDR, &ifr) != 0) {
-		close(soc);
-		SYSLOG(WARN, std::string(interface) + "fail to get interface mac id"); 
-		return "";
-	}
-
-	close(soc);
-			
-	return std::string(ifr.ifr_hwaddr.sa_data);
-}
-
 // initialise system id
 int Conf::initSysId(){
     	// DNS namespace UUID
@@ -212,7 +138,8 @@ int Conf::initSysId(){
     	const char* namespace_dns = NAMESPACE_DNS;
 	uuid_parse(namespace_dns, namespace_uuid); // Parse the DNS namespace UUID
 
-   	std::string mac_addr = getMacAddress();
+	Network nt;
+   	std::string mac_addr = nt.getMacAddress();
     	if(mac_addr.empty()){ STOP(ERROR, "fail to intialise id"); }
 
     	// Generate the UUID v5

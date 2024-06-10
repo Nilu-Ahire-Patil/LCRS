@@ -72,12 +72,6 @@ class Conf {
 		// finds string vector from line and insert in configuration data with provided key
 		static int initStringVector(const std::string& key, char* line);
 
-		// finds system interface mac address
-		static std::string getMacAddress();
-
-		// finds system interface mac address
-		static std::string getInterfaceMacAddress(const std::string&);
-
 		// initialise system id
 		static int initSysId();
 
