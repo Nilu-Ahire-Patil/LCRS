@@ -14,6 +14,9 @@ struct sys_id {
 		// default constructor
 		sys_id();
 
+		// friend class access to default constructor
+		friend class Conf;
+
 	public:
 		// constructor
 		sys_id(const void*);
@@ -23,6 +26,12 @@ struct sys_id {
 
 		// return system id
 		const uuid_t& id() const;
+
+		// return system id
+		const std::string str_id() const;
+
+		// check for emptyness
+		int isEmpty();
 
 		// for default constructor access
 		friend class packetHeader;

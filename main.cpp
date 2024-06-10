@@ -4,48 +4,72 @@
 #include "Sys.h"		// getCurrentDateString
 #include "Connect.h"		// Connect
 #include "Packet.h"		// Packet
-#include "Network.h"		// Network
+#include "Protocol.h"		// Protocol
 
 #include <string>		// string
 #include <iostream>		// cin, cout
 #include <cstdio>		// getchar
+#include <unordered_map>
+enum class CMD {
+	UNKNOWN = 0x00,
+	MESSAGE = 0x02,
+	EXIT = 0xff
+};
+
+CMD str_to_cmd(const std::string& cmd){
+	static const std::unordered_map<std::string, CMD> commandMap = {
+		{"msg", CMD::MESSAGE},
+        	{"exit", CMD::EXIT}
+	};
+	auto it = commandMap.find(cmd);
+    	if(it != commandMap.end()){ return it->second; }
+        return CMD::UNKNOWN;
+}
 
 int main(int argc, char** argv)
 {
 	// Redirect stderr to a file
-	FILE* file = nullptr;
-	std::string logFilePath = "log/" + Sys::getCurrentDateString() +".log";
-	if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
-        	std::cerr << "Failed to redirect stderr to file" << std::endl;
-	}
+//	FILE* file = nullptr;
+//	std::string logFilePath = "log/" + Sys::getCurrentDateString() +".log";
+//	if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
+//      	std::cerr << "Failed to redirect stderr to file" << std::endl;
+//	}
 
 	if(argc < 2){ Connect cn; cn.initialize(); }
 	else { Connect cn(argv[1]); cn.initialize(); }
 
-	std::string ip;
-	unsigned short port;
-	std::string msg;
+	while(1){	
+		std::cout << ">>> ";
+		std::string command;
+		std::cin >> command;
 
-	Network nt;
-	
-	while(1){
-		std::cout << "ip: ";
-		std::cin >> ip;
-		std::cout << "port: ";
-		std::cin >> port;
-		std::cout << "message: ";
-		std::cin >> msg;
+		switch(str_to_cmd(command)){
 
-		packet pkt(packetType::Message,(void*) msg.c_str(), msg.length());
+			// exit command
+			case CMD::EXIT: { return 0; }
 
-		n_addr addr(ip, port);
-
-		nt.sendTcpPacket(pkt, addr);
-		
-	//	pkt.freePacketData();
+			// send message using tcp
+			case CMD::MESSAGE: {
+				std::string ip;
+				unsigned int port;
+				std::string msg;
+				std::cout << "ip port message";
+				std::cin >> ip;
+				std::cin >> port;
+				std::cin >> msg;
+				n_addr addr(ip, port);
+				Protocol pro; 
+				pro.tcpMessage(addr, msg);
+				break;
+			}
+			case CMD::UNKNOWN: {
+      				std::cout << "unknown command" << std::endl;
+				break;
+			}
+			default: { std::cout << "unknown command" << std::endl; }
+		}
 	}
 
-	getchar();
 	return 0;
 }	
 #endif

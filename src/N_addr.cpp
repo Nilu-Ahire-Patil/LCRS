@@ -13,12 +13,10 @@ n_addr::n_addr(){}
 // crate n_addr object with ip and port pair
 n_addr::n_addr(in_addr ip, unsigned short port): _ip(ip), _port(port) {}
 
-/*
-// crate n_addr object with ip and port pair
+// crate n_addr object with string ip and port pair
 n_addr::n_addr(std::string ip, unsigned short port): _port(port) {
 	this->_ip.s_addr = inet_addr(ip.c_str());
 }
-*/
 
 // for compare two objects of n_addr
 bool n_addr::operator<(const n_addr& other) const {

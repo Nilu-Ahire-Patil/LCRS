@@ -25,7 +25,7 @@ packetHeader::packetHeader(const char* buffer): _s_id(buffer) {
 // initialise packet header
 packetHeader::packetHeader(packetType type, unsigned int dataSize): _type(type), _dataSize(dataSize){
 	// copy system id
-	memcpy(&this->_s_id._id, Conf::getSysId(), sizeof(sys_id));
+	_s_id = sys_id(Conf::getSysId());
 }
 
 // return sender system id

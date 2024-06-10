@@ -33,7 +33,7 @@ class Network {
 		void receveAndProcessTcp(int);
 
 		int broadcast(packet&);
-		int sendTcpPacket(packet&, n_addr&);
+		int sendTcpPacket(packet&, const n_addr&);
 		
 	//	int listenTcp();
 	//	int acceptTcp(int);

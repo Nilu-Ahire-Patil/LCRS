@@ -20,7 +20,7 @@ struct n_addr {
 		n_addr(in_addr, unsigned short);	
 
 		// create new node with ip string and port
-	//	n_addr(std::string, unsigned short); 	
+		n_addr(std::string, unsigned short); 	
 
 		// compare two nodes
 		bool operator<(const n_addr&) const;  	

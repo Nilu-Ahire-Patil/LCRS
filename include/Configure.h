@@ -55,6 +55,8 @@ class Conf {
 			std::vector<int>, std::vector<std::string>, 
 			std::set<int>, std::set<std::string>>> loadDefaultConfig();
 
+		static sys_id s_id;
+
 		// finds integer value in line and insert in configuration data with provided key
 		static int initInt(const std::string&, char*);
 
@@ -76,10 +78,13 @@ class Conf {
 		// finds system interface mac address
 		static std::string getInterfaceMacAddress(const std::string&);
 
+		// initialise system id
+		static int initSysId();
+
 
 	public:
 		// initialise system id
-		static char* getSysId();
+		static const sys_id& getSysId();
 
 		// initialise system with default configurstion
 		static int initConf();

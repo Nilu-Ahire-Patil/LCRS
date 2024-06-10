@@ -22,6 +22,15 @@ bool sys_id::operator==(const sys_id& s_id) const { return uuid_compare(_id, s_i
 // return system id
 const uuid_t& sys_id::id() const { return this->_id; }
 
+// return system id
+const std::string sys_id::str_id() const {
+    	char* uuid_str = new char[37];  
+    	uuid_unparse(_id, uuid_str);
+	return std::string(uuid_str);
+}
+// check id is empty or not
+int sys_id::isEmpty(){ return (_id == 0)? 1 : 0; }
+
 /*-------------------------------------------------------------------------------------------------*/
 
 // hash function for hash map

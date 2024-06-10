@@ -43,6 +43,9 @@ struct packet {
 		// sender system id
 		const sys_id& s_id() const;
 
+		// sender system id
+		const std::string str_sys_id() const;
+
 		// return packet type
 		packetType type() const;
 

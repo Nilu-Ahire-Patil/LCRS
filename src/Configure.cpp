@@ -26,6 +26,8 @@ std::unordered_map<std::string, std::variant<std::string, int, double, unsigned 
 // reserve memory for address book
 std::unordered_map<sys_id, n_addr, sys_id_hash> Conf::addr_book;
 
+// system id
+sys_id Conf::s_id;
 /*-------------------------------------------------------------------------------------------------*/
 
 // load default configuration in confData variable
@@ -203,10 +205,8 @@ std::string Conf::getInterfaceMacAddress(const std::string& interface) {
 	return std::string(ifr.ifr_hwaddr.sa_data);
 }
 
-#include <iostream>
-
 // initialise system id
-char* Conf::getSysId(){
+int Conf::initSysId(){
     	// DNS namespace UUID
 	uuid_t namespace_uuid; 
     	const char* namespace_dns = NAMESPACE_DNS;
@@ -219,16 +219,21 @@ char* Conf::getSysId(){
     	uuid_t uuid; 
     	uuid_generate_sha1(uuid, namespace_uuid, mac_addr.c_str(), strlen(mac_addr.c_str()));
 
-	std::cout << uuid << std::endl;
-	std::cout << sizeof(uuid) << std::endl;
+	// asign system value to an static variable
+	s_id = sys_id(uuid);
 
-    	// Convert the UUID to a string
-    	char* uuid_str = new char[37];  
-    	uuid_unparse(uuid, uuid_str);
+    	SYSLOG(INFO, "sysyem id : " + s_id.str_id()); 
 
-    	SYSLOG(INFO, "sysyem id : " + std::string(uuid_str));
+	return 0;
+}
 
-	return uuid_str;
+// initialise system id
+const sys_id& Conf::getSysId(){
+
+	// innitialise system id
+	if(s_id.isEmpty() == 1){ initSysId(); }
+	
+	return s_id;
 }
 
 // initialise system with default configurstion
@@ -240,6 +245,11 @@ int Conf::initConf(){
 int Conf::initConf(const std::string& confFilePath){
 	// initialise system with default configurstion
 	confData = loadDefaultConfig();
+
+	// innitialise system id
+	initSysId();
+
+	// wecan print system id here
 
 	if(confFilePath.empty()){ SYSLOG(ERROR, "empty file path"); }
 

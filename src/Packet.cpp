@@ -63,6 +63,9 @@ unsigned int packet::dataSize() const { return this->_header.dataSize(); }
 // sender system id
 const sys_id& packet::s_id() const { return this->_header.s_id(); }
 
+// sender system id
+const std::string packet::str_sys_id() const { return this->_header._s_id.str_id(); }
+
 // returns packet type
 packetType packet::type() const { return this->_header.type(); }
 

@@ -18,14 +18,14 @@
 void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 	switch(pkt.type()){
 		// case for unknown packets
-		case packetType::Unknown : SYSLOG(INFO, "unknown packet to process"); break;
+		case packetType::Unknown : SYSLOG(ERROR, "unknown packet to process"); break;
 
 		// case for handshake request by udp
-		case packetType::UdpHandshake : Conf::addr_book[pkt.s_id()] = n_addr(sender_addr.sin_addr, 
-							*(unsigned short*) pkt.data()); break;
+		case packetType::UdpHandshake : Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()); break;
 
 		// case for receive send pure text message
-		case packetType::Message : SYSLOG(INFO, "Message receive");
+		case packetType::Message : SYSLOG(INFO, pkt.str_sys_id() + " : Message receive");
 					   std::cout << (char*) pkt.data() << std::endl;
 					   break;
 
@@ -46,6 +46,13 @@ int Network::getBroadcastSocket(){
 	int broadcast_flag = 1;
 	if(setsockopt(soc, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast_flag, sizeof(broadcast_flag)) < 0){ 
 		STOP(ERROR, "fail to set broadcast option"); 
+	}
+
+	// Disable loopback for multicast
+    	//unsigned char loop = 0;
+    	unsigned char loop = 1;
+    	if(setsockopt(soc, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0){ 
+		SYSLOG(WARN, "loopback not set.");
 	}
 
 	// set time to leave value for routing the packet
@@ -385,7 +392,7 @@ int Network::connectTcp(int soc, in_addr ip, unsigned short port){
 }
 
 // send packet to provided ip and port pair
-int Network::sendTcpPacket(packet& pkt, n_addr& receiver_addr){
+int Network::sendTcpPacket(packet& pkt, const n_addr& receiver_addr){
 	int soc = -1;
 	if((soc = getTcpSocket()) < 0){ 
 		SYSLOG(ERROR, "socket not set properly"); 
