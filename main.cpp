@@ -11,13 +11,15 @@
 #include <cstdio>		// getchar
 #include <unordered_map>
 enum class CMD {
-	UNKNOWN = 0x00,
-	MESSAGE = 0x02,
-	EXIT = 0xff
+	UNKNOWN,
+	STORE,
+	MESSAGE,
+	EXIT
 };
 
 CMD str_to_cmd(const std::string& cmd){
 	static const std::unordered_map<std::string, CMD> commandMap = {
+		{"store", CMD::STORE},
 		{"msg", CMD::MESSAGE},
         	{"exit", CMD::EXIT}
 	};
@@ -38,6 +40,7 @@ int main(int argc, char** argv)
 	if(argc < 2){ Connect cn; cn.initialize(); }
 	else { Connect cn(argv[1]); cn.initialize(); }
 
+	Protocol pro; 
 	while(1){	
 		std::cout << ">>> ";
 		std::string command;
@@ -58,10 +61,14 @@ int main(int argc, char** argv)
 				std::cin >> port;
 				std::cin >> msg;
 				n_addr addr(ip, port);
-				Protocol pro; 
-				pro.tcpMessage(addr, msg);
+				pro.repTcpMessage(addr, msg);
 				break;
 			}
+
+			case CMD::STORE : {
+				pro.reqUdpAdopter();
+			}
+
 			case CMD::UNKNOWN: {
       				std::cout << "unknown command" << std::endl;
 				break;

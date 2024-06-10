@@ -5,6 +5,7 @@
 #include "Sys.h"		// SYSLOG, STOP
 #include "Network.h"
 
+#include <shared_mutex>		// shared_mutex
 #include <unistd.h> 		// close
 #include <cstring>		// strtok
 				// strncpy
@@ -17,22 +18,22 @@ std::unordered_map<std::string, std::variant<std::string, int, double, unsigned 
 	std::vector<int>, std::vector<std::string>, 
 	std::set<int>, std::set<std::string>>> Conf::confData; 
 
+// mutex for solve critical section problem
+std::shared_mutex Conf::confDataMutex;
+
 // reserve memory for address book
 std::unordered_map<sys_id, n_addr, sys_id_hash> Conf::addr_book;
+
+// mutex for solve critical section problem
+std::shared_mutex Conf::addr_bookMutex;
 
 // system id
 sys_id Conf::s_id;
 /*-------------------------------------------------------------------------------------------------*/
 
-// load default configuration in confData variable
-std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
-		std::vector<int>, std::vector<std::string>, 
-		std::set<int>, std::set<std::string>>> Conf::loadDefaultConfig(){
-
-   	std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
-		std::vector<int>, std::vector<std::string>, 
-		std::set<int>, std::set<std::string>>> confData;
-	
+int Conf::loadDefaultConfig(){	
+	// Exclusive lock for writing
+	std::unique_lock<std::shared_mutex> lock(confDataMutex);  
 	confData[MCB] = V_MCB;
 	confData[TCP_PORTS] = std::set<int>{ V_TCP_PORTS };
 	confData[UDP_PORTS] = std::set<int>{ V_UDP_PORTS };
@@ -41,9 +42,9 @@ std::unordered_map<std::string, std::variant<std::string, int, double, unsigned 
 	//confData[NET_INTERFACES] = std::vector<std::string>{ V_NET_INTERFACES };
 	
 	// set unique system id for uniquely identify in network
-	//getSysId();
+	initSysId();
 
-	return confData;
+	return 0;
 }
 
 // finds integer value in line and insert in configuration data with provided key
@@ -171,12 +172,9 @@ int Conf::initConf(){
 // initialise system with configuration file
 int Conf::initConf(const std::string& confFilePath){
 	// initialise system with default configurstion
-	confData = loadDefaultConfig();
+	loadDefaultConfig();
 
-	// innitialise system id
-	initSysId();
-
-	// wecan print system id here
+	// we can print system id here
 
 	if(confFilePath.empty()){ SYSLOG(ERROR, "empty file path"); }
 

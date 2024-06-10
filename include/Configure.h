@@ -4,6 +4,8 @@
 #include "N_addr.h"		//n_addr
 #include "SysId.h"		//sys_id
 
+#include <mutex>		// unique_lock
+#include <shared_mutex>		// shared_mutex
 #include <variant>		// variant
 #include <string>		// string
 #include <vector>		// vector
@@ -50,10 +52,11 @@ class Conf {
 			std::vector<int>, std::vector<std::string>, 
 			std::set<int>, std::set<std::string>>> confData;
 
+		// mutex for solve critical section problem
+		static std::shared_mutex confDataMutex;
+
 		// load default configuration in confData variable
-   		static std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
-			std::vector<int>, std::vector<std::string>, 
-			std::set<int>, std::set<std::string>>> loadDefaultConfig();
+		static int loadDefaultConfig();
 
 		static sys_id s_id;
 
@@ -75,7 +78,6 @@ class Conf {
 		// initialise system id
 		static int initSysId();
 
-
 	public:
 		// initialise system id
 		static const sys_id& getSysId();
@@ -88,15 +90,25 @@ class Conf {
 
 		// get info by key
 		template <typename T>
-		static T getInfo(const std::string& key){ return std::get<T>(confData[key]); }
+		static T getInfo(const std::string& key){ 
+			// Shared lock for reading
+			std::shared_lock<std::shared_mutex> lock(confDataMutex);
+			return std::get<T>(confData[key]); 
+		}
 
 		// set info by key
 		template <typename T>
-		static void setInfo(const std::string& key, T value){ confData[key] = value; }
+		static void setInfo(const std::string& key, T value){
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(confDataMutex);  
+		       	confData[key] = value; 
+		}
 		
 		// address book
 		static std::unordered_map<sys_id, n_addr, sys_id_hash> addr_book;
 
+		// mutex for solve critical section problem
+		static std::shared_mutex addr_bookMutex;
 };
 
 /*-------------------------------------------------------------------------------------------------*/

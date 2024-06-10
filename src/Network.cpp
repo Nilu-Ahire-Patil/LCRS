@@ -4,6 +4,7 @@
 #include "Network.h"		// interface
 #include "Configure.h"		// Conf
 #include "Packet.h"		// packet
+#include "Protocol.h"		// Protocol
 #include "Sys.h"		// SYSLOG, STOP
 
 #include <thread>		// thread
@@ -23,21 +24,78 @@
 
 // takes an packet as input and process according that packet type
 void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
+
+	Protocol pt;
 	switch(pkt.type()){
-		// case for unknown packets
-		case packetType::Unknown : SYSLOG(ERROR, "unknown packet to process"); break;
 
 		// case for handshake request by udp
-		case packetType::UdpHandshake : Conf::addr_book[pkt.s_id()] = n_addr(
-				sender_addr.sin_addr, *(unsigned short*) pkt.data()); break;
+		case packetType::REQ_HANDSHAKE : { 
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+
+			// update addr_book
+			Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			);
+
+			// send reply for this request with our ip port id
+			pt.repTcpHandshake(Conf::addr_book[pkt.s_id()]);	
+
+			break;
+		}
+
+		// case for handshake reply by udp
+		case packetType::REP_HANDSHAKE : { 
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+			// update addr_book
+			Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			); 
+
+			break;
+		}
+
+		// case for adopter request by udp
+		case packetType::REQ_ADOPTER : { 
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+
+			// update addr_book
+			Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			);
+
+			// send reply for this request with our ip port id
+			pt.repTcpAdopter(Conf::addr_book[pkt.s_id()]);	
+
+			break;
+		}
+					  
+		// case for adopter request by udp
+		case packetType::REP_ADOPTER : { 
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Protocol::adopter_bookMutex);  
+
+			// update adopter book
+			Protocol::adopter_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			);
+
+			break;
+		}
 
 		// case for receive send pure text message
-		case packetType::Message : SYSLOG(INFO, pkt.str_sys_id() + " : Message receive");
-					   std::cout << (char*) pkt.data() << std::endl;
-					   break;
+		case packetType::TXT_MESSAGE : {
+			std::string sender_id = pkt.str_sys_id(); 
+			SYSLOG(INFO, sender_id + " : Message receive");
+			std::cout << "<<< " << sender_id << " : " << (char*) pkt.data() << std::endl;
+
+			break;
+		}
 
 		// default case
-		default : SYSLOG(INFO, "packet type can't identified");
+		default : { SYSLOG(INFO, "packet type can't identified"); }
 	}
 }
 

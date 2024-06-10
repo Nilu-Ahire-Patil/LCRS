@@ -32,7 +32,7 @@ int Connect::initialize(){
 
 	// handshake request
 	Protocol pro;
-	pro.udpHandshakeRequest();
+	pro.reqUdpHandshake();
 
 	// replying udp packets
 	std::thread udpReplying([this]() { 
