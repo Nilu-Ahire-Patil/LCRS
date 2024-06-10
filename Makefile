@@ -1,6 +1,7 @@
 # Compiler and flags --------------------------------------------
 CC = g++
 CFLAGS = -Wall -Iinclude -g -o3 -fPIC
+# CFLAGS = -Wall -Iinclude -fPIC
 
 # Directories ---------------------------------------------------
 SRCDIR = src
@@ -75,7 +76,7 @@ clean:
 	@if [ -d "$(BUILDDIR)" ]; then \
 		echo "Removing local files."; \
 		rm -f $(TARGET) $(BUILDDIR)/main.o \
-		$(SHARED_LIB) $(OBJECTS); rmdir $(BUILDDIR); \
+		$(SHARED_LIB) $(OBJECTS); rm -r $(BUILDDIR); \
 	fi
 # remove bin directory
 	@if [ -d "$(BINDIR)" ]; then \

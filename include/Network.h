@@ -1,7 +1,7 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include "AddrBook.h"		//n_addr
+#include "N_addr.h"		//n_addr
 #include "Packet.h" 		// packet
 
 #include <arpa/inet.h>		// sockaddr_in

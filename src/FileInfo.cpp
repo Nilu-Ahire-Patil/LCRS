@@ -1,11 +1,12 @@
 #ifndef FILE_INFO_IMPL_H
 #define FILE_INFO_IMPL_H
 
-#include "FileInfo.h"		// fileInfo
+#include "FileInfo.h"		// interface
 #include "Sys.h"		// SYSLOG, STOP
 
 #include <string>		// string
-#include <sys/stat.h>		// stat
+//#include <sys/stat.h>		// stat
+#include <math.h>		// ceil
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -27,8 +28,11 @@ off_t fileInfo::size() const { return this->_fileStat.st_size; }
 // returns file block byte size on disk
 blksize_t fileInfo::blockSize() const { return this->_fileStat.st_blksize; }
 
-// returns file block(512 bytes per block) numbers on actual disk 
-blkcnt_t fileInfo::blocks() const { return this->_fileStat.st_blocks; }
+// returns file block numbers for actual data not on disk space blocks  
+blkcnt_t fileInfo::blocks() const { return blksize_t(ceil(size() / blockSize())); }
+
+// returns slack space of last block
+off_t fileInfo::slackSpace() const { return off_t(size() % blockSize()); }
 
 /*-------------------------------------------------------------------------------------------------*/
 #endif

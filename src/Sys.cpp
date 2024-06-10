@@ -1,7 +1,7 @@
 #ifndef SYS_IMPL_H
 #define SYS_IMPL_H
 
-#include "Sys.h"		// Interface
+#include "Sys.h"		// interface
 
 #include <ctime>		// time
 				// localtime

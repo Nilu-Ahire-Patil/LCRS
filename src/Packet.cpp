@@ -1,7 +1,9 @@
 #ifndef PACKET_IMPL_H
 #define PACKET_IMPL_H
 
-#include "Packet.h"		// Interface
+#include "Packet.h"		// interface
+#include "PacketHeader.h"	// packetHeader
+#include "SysId.h"		// sys_id
 
 #include <arpa/inet.h>		// in_addr
 #include <string>		// string
@@ -9,67 +11,11 @@
 
 /*-------------------------------------------------------------------------------------------------*/
 
-// set packet type
-void packetHeader::type(packetType type){ this->_type = type; }
-
-// set data length in bytes
-void packetHeader::dataSize(unsigned int dataSize){ this->_dataSize = dataSize; }
-
 // default constructor
-packetHeader::packetHeader(){}
-
-// returns packet type
-packetType packetHeader::type() const { return this->_type; }
-
-// returns data length in bytes
-unsigned int packetHeader::dataSize() const { return this->_dataSize; }
-
-// initialise packet header
-packetHeader::packetHeader(packetType type, unsigned int dataSize): _type(type), _dataSize(dataSize){}
-
-/*-------------------------------------------------------------------------------------------------*/
-
-// set packet header
-void packet::header(packetHeader header){ this->_header = header; }
-
-// set packet data
-void packet::data(char* _data){ this->_data = _data; }
-
-// return complete size of packet including header
-unsigned int packet::size() const { return this->headerSize() + this->_header.dataSize(); }
-
-// return size of data stored in packet
-unsigned int packet::dataSize() const { return this->_header.dataSize(); }
-
-// return size of header 
-unsigned int packet::headerSize() const { return sizeof(packetHeader); }
-
-// returns packet type
-packetType packet::type() const { return this->_header.type(); }
-
-// returns packet data
-char* packet::data() const { return this->_data; }
-
-// return packet header
-const packetHeader* packet::header() const { return &this->_header; }
-
-// converts packet to continuous memory block of characters
-char* packet::serialize() const {
-	// reserve continues memory for store packet data
-	char* buffer = new char[this->size()]{ '\0' };
-
-	// copy header data first
-	memcpy(buffer, &this->_header, this->headerSize());
-
-	// copy packet data into buffer
-	memcpy(buffer + this->headerSize(), this->data(), this->dataSize());
-
-	// return base address of continues data stored memory place
-	return buffer;
-}
+packet::packet(){}
 
 // converts continuous memory block of character to packet
-packet::packet(const char* buffer) {
+packet::packet(const char* buffer){
 	// copy header data
 	memcpy(&this->_header, buffer, this->headerSize());
 
@@ -87,14 +33,41 @@ packet::packet(packetType type, void* data, unsigned int size): _header(type, si
 	memcpy(this->_data, data, size);
 }
 
-// default constructor
-packet::packet(){}
-
 // default distructor
-packet::~packet(){ if(this->_data != nullptr){ delete[] this->_data; this->data(nullptr); } }
-	
-// removes reserve memory used by packet data
-// void packet::freePacketData(){ delete[] this->_data; this->data(nullptr); }
+packet::~packet(){ if(this->_data != nullptr){ delete[] this->_data; this->_data = nullptr; } }
+
+// converts packet to continuous memory block of characters
+char* packet::serialize() const {
+	// reserve continues memory for store packet data
+	char* buffer = new char[this->size()]{ '\0' };
+
+	// copy header data first
+	memcpy(buffer, &this->_header, this->headerSize());
+
+	// copy packet data into buffer
+	memcpy(buffer + this->headerSize(), this->data(), this->dataSize());
+
+	// return base address of continues data stored memory place
+	return buffer;
+}
+
+// return complete size of packet including header
+unsigned int packet::size() const { return this->headerSize() + this->_header.dataSize(); }
+
+// return size of header 
+unsigned int packet::headerSize() const { return sizeof(packetHeader); }
+
+// return size of data stored in packet
+unsigned int packet::dataSize() const { return this->_header.dataSize(); }
+
+// sender system id
+const sys_id& packet::s_id() const { return this->_header.s_id(); }
+
+// returns packet type
+packetType packet::type() const { return this->_header.type(); }
+
+// returns packet data
+char* packet::data() const { return this->_data; }
 
 /*-------------------------------------------------------------------------------------------------*/
 

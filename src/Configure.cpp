@@ -2,7 +2,6 @@
 #define CONFIG_IMPL_H
 
 #include "Configure.h"		// interface
-#include "AddrBook.h"		// addr_book
 #include "Sys.h"		// SYSLOG, STOP
 
 #include <unistd.h> 		// close
@@ -13,18 +12,19 @@
 				// IFF_LOOPBACK
 #include <cstring>		// strtok
 				// strncpy
-
 #include <ifaddrs.h> 		// getifaddrs
 				// freeifaddrs
 #include <uuid/uuid.h> 		// UUID
 
 /*-------------------------------------------------------------------------------------------------*/
 
+// reserve memory for conffig data
 std::unordered_map<std::string, std::variant<std::string, int, double, unsigned short, 
 	std::vector<int>, std::vector<std::string>, 
 	std::set<int>, std::set<std::string>>> Conf::confData; 
 
-addr_book Conf::a_book;
+// reserve memory for address book
+std::unordered_map<sys_id, n_addr, sys_id_hash> Conf::addr_book;
 
 /*-------------------------------------------------------------------------------------------------*/
 
@@ -45,7 +45,7 @@ std::unordered_map<std::string, std::variant<std::string, int, double, unsigned 
 	//confData[NET_INTERFACES] = std::vector<std::string>{ V_NET_INTERFACES };
 	
 	// set unique system id for uniquely identify in network
-	initSysId();
+	//getSysId();
 
 	return confData;
 }
@@ -203,8 +203,10 @@ std::string Conf::getInterfaceMacAddress(const std::string& interface) {
 	return std::string(ifr.ifr_hwaddr.sa_data);
 }
 
+#include <iostream>
+
 // initialise system id
-void Conf::initSysId(){
+char* Conf::getSysId(){
     	// DNS namespace UUID
 	uuid_t namespace_uuid; 
     	const char* namespace_dns = NAMESPACE_DNS;
@@ -217,11 +219,16 @@ void Conf::initSysId(){
     	uuid_t uuid; 
     	uuid_generate_sha1(uuid, namespace_uuid, mac_addr.c_str(), strlen(mac_addr.c_str()));
 
+	std::cout << uuid << std::endl;
+	std::cout << sizeof(uuid) << std::endl;
+
     	// Convert the UUID to a string
-    	char uuid_str[37];  
+    	char* uuid_str = new char[37];  
     	uuid_unparse(uuid, uuid_str);
 
     	SYSLOG(INFO, "sysyem id : " + std::string(uuid_str));
+
+	return uuid_str;
 }
 
 // initialise system with default configurstion

@@ -7,8 +7,8 @@
 /*-------------------------------------------------------------------------------------------------*/
 struct fileInfo {
 	private:
-		std::string _path;
-		struct stat _fileStat;
+		std::string _path;		// file path in local machine
+		struct stat _fileStat;		// file information
 
 	public:
 		// set file stat variable with provided file path
@@ -26,6 +26,8 @@ struct fileInfo {
 		// returns file block(512 bytes per block) numbers on actual disk 
 		blkcnt_t blocks() const;
 
+		// retuens slack space of last block
+		off_t slackSpace() const;
 };
 
 /*-------------------------------------------------------------------------------------------------*/

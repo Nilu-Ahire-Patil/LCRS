@@ -21,7 +21,7 @@ void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 		case packetType::Unknown : SYSLOG(INFO, "unknown packet to process"); break;
 
 		// case for handshake request by udp
-		case packetType::UdpHandshake : Conf::a_book.insert(sender_addr.sin_addr, 
+		case packetType::UdpHandshake : Conf::addr_book[pkt.s_id()] = n_addr(sender_addr.sin_addr, 
 							*(unsigned short*) pkt.data()); break;
 
 		// case for receive send pure text message

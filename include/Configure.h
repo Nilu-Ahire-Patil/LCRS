@@ -1,7 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "AddrBook.h"		//addr_book
+#include "N_addr.h"		//n_addr
+#include "SysId.h"		//sys_id
 
 #include <variant>		// variant
 #include <string>		// string
@@ -75,10 +76,11 @@ class Conf {
 		// finds system interface mac address
 		static std::string getInterfaceMacAddress(const std::string&);
 
-		// initialise system id
-		static void initSysId();
 
 	public:
+		// initialise system id
+		static char* getSysId();
+
 		// initialise system with default configurstion
 		static int initConf();
 
@@ -92,9 +94,10 @@ class Conf {
 		// set info by key
 		template <typename T>
 		static void setInfo(const std::string& key, T value){ confData[key] = value; }
+		
+		// address book
+		static std::unordered_map<sys_id, n_addr, sys_id_hash> addr_book;
 
-		// address book for store node address
-		static addr_book a_book;
 };
 
 /*-------------------------------------------------------------------------------------------------*/

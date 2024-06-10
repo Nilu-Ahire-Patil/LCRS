@@ -113,39 +113,38 @@ lcrs/			# project folder
 
 - **LOADING INITIALIZATIONS**
 1.	initialise default internal data
+	auto detect network interface and configure system id from that
 2.	check for configuration file
 3.	load configuration if file present
 
-- **GREATING SETUP**
+- **PORT SETUP**
 1.	create a tcp socket and try to bind it with
 	specific port provided by user or default 
-
 2.	multicast the tcp port that we bond to socket 
 	in step 1.0 to specific group provided by user
 	or default
 
 - **BACKGROUND CONNECTIONS**
-
 1.	crate an listening socket, join to specific 
 	multicast group provided by user or defaul
 2.	receive requests from others and work according 
 	to that type of request is receive
 3.	update sender address in our address book
-
 4.	listen on the socket that we created in step no 1.0
 5.	accept connections and work according to packet type
 6.	update sender address in our address book
 
 - **STORING FILE**
-
 1.	locate file
+	set file stat
 2.	decide chunk size
-3.	create metadata file
-4.	request receiver for each chunk of file
-5.	decide transfer file chunk to which receiver
+4.	request receiver send global request for Adoptive nodes
+3.	create empty metadata file
+	initialise metafile
+5.	select adoptive nodes to adopt file chunk
+	send file chunk with acknowledgement
 6.	update metafile
 7.	after getting whole chunks stored store meta file also
-8.	automatic detect network interface and configure sys id from that
 	
 conf.h line 172 check note
 
