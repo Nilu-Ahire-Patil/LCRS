@@ -10,6 +10,39 @@
 #include <stdexcept> 		// out_of_range
 
 /*-------------------------------------------------------------------------------------------------*/
+// default constructor
+chunkHeader::chunkHeader(){}
+
+
+chunkHeader::chunkHeader(const char* data){
+	// initialise chunkHeader data
+}
+
+char* chunkHeader::serialize() const {
+	// create chhar string of all data;
+}
+
+/*-------------------------------------------------------------------------------------------------*/
+// default constructor
+chunk::chunk(){}
+
+// deserialize
+chunk::chunk(const char*){
+	// initialise all data
+}
+
+// return chunkHeader
+const chunkHeader& chunk::id() const { return this->_id; }
+
+// return block size
+size_t chunk::dataSize() const { return this->_dataSize; }
+
+// serialize chunk
+char* chunk::serialize() const {
+	// create chhar string of all data;
+}
+
+/*-------------------------------------------------------------------------------------------------*/
 
 // meta file from temparory folder that contains all meta file chunks
 metaInfo::metaInfo(const std::string& folderPath){

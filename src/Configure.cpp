@@ -39,6 +39,7 @@ int Conf::loadDefaultConfig(){
 	confData[UDP_PORTS] = std::set<int>{ V_UDP_PORTS };
 	confData[BGA] = std::set<std::string>{ V_BGA };
 	confData[LP] = (unsigned short) 0;
+	confData[AVL_MEM] = (int) 0;
 	//confData[NET_INTERFACES] = std::vector<std::string>{ V_NET_INTERFACES };
 	
 	// set unique system id for uniquely identify in network
@@ -195,6 +196,7 @@ int Conf::initConf(const std::string& confFilePath){
 		else if(initIntSet(TCP_PORTS, line) >= 0){ continue; }
 		else if(initIntSet(UDP_PORTS, line) >= 0){ continue; }
 		else if(initStringSet(BGA, line) >= 0){ continue; }
+		else if(initInt(AVL_MEM, line) >= 0){ continue; }
 	// 	else if(initStringVector(NET_INTERFACES, line) >= 0){ continue; }
 	}
 

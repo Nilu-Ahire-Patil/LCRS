@@ -2,17 +2,52 @@
 #define META_INFO_H
 
 #include "FileInfo.h"		// fileInfo
+#include "SysId.h"		// sys_id
 
 #include <string>		// string
 #include <sys/stat.h>		// stat
 
+struct chunkHeader {
+	private:
+		sys_id _s_id;
+		unsigned int _no;
+		
+	public: 
+		// default constructor
+		chunkHeader();
+
+		// serialise chunkHeader
+		chunkHeader(const char*);
+
+		// serialise chunkHeader
+		char* serialize() const;
+};
+
 struct chunk {
-	// chunk hash
-	// chunk size
-	// chunk adoptive node id
-	// ip
-	// port
-	// status flag sent receive replicated etc
+	private:
+		struct chunkHeader _id;
+		size_t _dataSize;
+	public:
+
+		chunk();
+
+		// deserialise chuk
+		chunk(const char*);
+
+		// returns chunkHeader
+		const chunkHeader& id() const; 
+
+		// return block size
+		size_t dataSize() const;
+
+		// serialise chunkHeader
+		char* serialize() const;
+		// chunk hash
+		// chunk size
+		// chunk adoptive node id
+		// ip
+		// port
+		// status flag sent receive replicated etc
 };
 
 

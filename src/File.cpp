@@ -18,10 +18,10 @@ int file::store(const std::string& path){
 	pt.reqUdpAdopter();
 
 	// create file instance
-	fileInfo(path);
+	//fileInfo(path);
 	// check permeations of file
 	// decide file chunk size
-	metaFile(fileInfo);
+	//metaFile(fileInfo);
 	// create meta file
 	// create file chunks of decided size
 	// send file along with meta file using network class

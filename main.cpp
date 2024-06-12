@@ -32,11 +32,13 @@ CMD str_to_cmd(const std::string& cmd){
 int main(int argc, char** argv)
 {
 	// Redirect stderr to a file
-//	FILE* file = nullptr;
-//	std::string logFilePath = "log/" + Sys::getCurrentDateString() +".log";
-//	if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
-//      	std::cerr << "Failed to redirect stderr to file" << std::endl;
-//	}
+	/*
+	FILE* file = nullptr;
+	std::string logFilePath = "log/" + Log::getCurrentDateString() +".log";
+	if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
+      	std::cerr << "Failed to redirect stderr to file" << std::endl;
+	}
+	*/
 
 	if(argc < 2){ Connect cn; cn.initialize(); }
 	else { Connect cn(argv[1]); cn.initialize(); }

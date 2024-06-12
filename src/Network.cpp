@@ -6,6 +6,8 @@
 #include "Packet.h"		// packet
 #include "Protocol.h"		// Protocol
 #include "Log.h"		// SYSLOG, PKTLOG
+#include "MetaInfo.h"		// chunk, chunkHeader
+#include "Storage.h"		// storeMeta
 
 #include <thread>		// thread
 #include <unistd.h>		// close
@@ -73,6 +75,7 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			// send reply for this request with our ip port id
+			Protocol pt;
 			return pt.repTcpAdopter(Conf::addr_book[pkt.s_id()]);	
 		}
 					  
@@ -89,6 +92,66 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 			std::cout << "adopter_book.size(): " << Protocol::adopter_book.size() << std::endl;
 
 			return 0;
+		}
+
+		// case for chunk store request by tcp
+		case packetType::REQ_STORE : { 
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+
+			// update addr_book
+			Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			);
+
+			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+
+			// deserialize chunk
+			chunk chnk(pkt.data() + sizeof(unsigned short));
+
+			// send reply for this request with our ip port id
+			if(pt.repTcpStore(Conf::addr_book[pkt.s_id()], chnk) < 0){
+				
+				// send chunk id with ERR_STORE request
+				chunkHeader chnk_id = chnk.id();
+
+				// creating packet of chunk id with ERR_STORE FLAG
+				packet pkt(packetType::ERR_STORE,(void*) chnk_id.serialize(), sizeof(chunkHeader));
+
+				// send chunk id with ERR_STORE request
+				Network nt;
+				return nt.sendTcpPacket(pkt, Conf::addr_book[pkt.s_id()]);
+			}	
+
+			return 0;
+		}
+
+		// case for chunk store successfully
+		case packetType::REP_STORE : { 
+
+			// Exclusive lock for writing
+			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+
+			// update addr_book
+			Conf::addr_book[pkt.s_id()] = n_addr(
+				sender_addr.sin_addr, *(unsigned short*) pkt.data()
+			);
+
+			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+
+			// deserialise chunk id
+			chunkHeader chnk_id(pkt.data());
+
+			// update that entry of chunk in metafile on secondary storage
+			Storage st;
+			st.storeMeta(pkt.s_id(), chnk_id);
+
+			return 0;
+		}
+
+		// case for fail to store chunk
+		case packetType::ERR_STORE : { 
+			// store this chunk on different node
 		}
 
 		// case for receive send pure text message

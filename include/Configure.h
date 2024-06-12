@@ -38,6 +38,9 @@
 #define BGA 		"broadcast_group_address"
 #define V_BGA 		"239.0.1.1", "239.0.1.2"
 
+#define AVL_MEM		"AVL_MEM"
+#define V_AVL_MEM	0
+
 // interface set for mac address
 // order of interfaces matters
 // #define NET_INTERFACES	"network_interfaces"

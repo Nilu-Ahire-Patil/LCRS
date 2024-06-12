@@ -1,8 +1,9 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#include "N_addr.h"	// n_addr
-#include "SysId.h"	// sys_id
+#include "N_addr.h"		// n_addr
+#include "SysId.h"		// sys_id
+#include "MetaInfo.h"		// chunk
 
 #include <string>
 #include <unordered_map>
@@ -33,6 +34,12 @@ class Protocol {
 
 		// reply for request adopter using tcp
 		int repTcpAdopter(const n_addr);
+
+		// request for store chunk using tcp
+		int reqTcpStore(const n_addr, const chunk&);
+
+		// reply for request store using tcp
+		int repTcpStore(const n_addr, const chunk&);
 
 		// text message send
 		int repTcpMessage(const n_addr&, const std::string&);

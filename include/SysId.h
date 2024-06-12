@@ -20,6 +20,9 @@ struct sys_id {
 		// for default constructor access
 		friend struct packetHeader;
 
+		// for default constructor access
+		friend struct chunkHeader;
+
 	public:
 		// constructor
 		sys_id(const void*);
