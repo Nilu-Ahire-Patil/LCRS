@@ -81,7 +81,7 @@ lcrs/			# project folder
 │   └── FileInfo.o
 │   └── Network.o
 │   └── Packet.o
-│   └── Sys.o
+│   └── Log.o
 ├── etc/		# configuration files
 │   └── Init.config
 ├── include/		# library interfaces

@@ -2,7 +2,7 @@
 #define FILE_INFO_IMPL_H
 
 #include "FileInfo.h"		// interface
-#include "Sys.h"		// SYSLOG, STOP
+#include "Log.h"		// SYSLOG, STOP
 
 #include <string>		// string
 //#include <sys/stat.h>		// stat
@@ -12,7 +12,7 @@
 
 // set file stat variable with provided file path
 fileInfo::fileInfo(const std::string& path){
-	if(stat(path.c_str(), &this->_fileStat) < 0){ SYSLOG(INFO, "unable to get file stat"); }
+	if(stat(path.c_str(), &this->_fileStat) < 0){ SYSLOG(INFO, "FILE_STAT_FAIL"); }
 	// check for file type accept normal file
 	// don't access folder
 	// also check how it works with zip and other type of files

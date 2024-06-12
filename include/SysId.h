@@ -17,6 +17,9 @@ struct sys_id {
 		// friend class access to default constructor
 		friend class Conf;
 
+		// for default constructor access
+		friend struct packetHeader;
+
 	public:
 		// constructor
 		sys_id(const void*);
@@ -33,8 +36,6 @@ struct sys_id {
 		// check for emptyness
 		int isEmpty();
 
-		// for default constructor access
-		friend class packetHeader;
 };
 
 /*-------------------------------------------------------------------------------------------------*/

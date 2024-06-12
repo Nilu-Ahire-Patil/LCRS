@@ -2,7 +2,7 @@
 #define CONFIG_IMPL_H
 
 #include "Configure.h"		// interface
-#include "Sys.h"		// SYSLOG, STOP
+#include "Log.h"		// SYSLOG
 #include "Network.h"
 
 #include <shared_mutex>		// shared_mutex
@@ -141,7 +141,7 @@ int Conf::initSysId(){
 
 	Network nt;
    	std::string mac_addr = nt.getMacAddress();
-    	if(mac_addr.empty()){ STOP(ERROR, "fail to intialise id"); }
+    	if(mac_addr.empty()){ SYSLOG(ERROR, "SYSTEM_ID_FAIL"); return -1; }
 
     	// Generate the UUID v5
     	uuid_t uuid; 
@@ -150,7 +150,7 @@ int Conf::initSysId(){
 	// asign system value to an static variable
 	s_id = sys_id(uuid);
 
-    	SYSLOG(INFO, "sysyem id : " + s_id.str_id()); 
+    	SYSLOG(INFO, "SYSTEM_ID_SUCCESS " + s_id.str_id()); 
 
 	return 0;
 }
@@ -176,19 +176,16 @@ int Conf::initConf(const std::string& confFilePath){
 
 	// we can print system id here
 
-	if(confFilePath.empty()){ SYSLOG(ERROR, "empty file path"); }
+	if(confFilePath.empty()){ SYSLOG(ERROR, "CONFIG_LOAD_FAIL"); return 1; }
 
 	FILE *confFile;
 	if((confFile = fopen(confFilePath.c_str(), "r")) == NULL){ 
-		SYSLOG(ERROR, confFilePath + ":runing on internal configuration"); 
+		SYSLOG(ERROR,"CONFIG_FILE_NOT_FOUND " + confFilePath); 
 		return 1;
 	}
-	
-	SYSLOG(SUCCESS, confFilePath + " file loaded"); 
 
 	char line[MAX_LINE_LENGTH] = { '\0' };
 	while(fgets(line, sizeof(line), confFile) != NULL){
-
 		// handling comment
 		char *comment_pos = NULL;
 		if((comment_pos = strstr(line, "//")) != NULL){ *comment_pos = '\0'; }
@@ -201,6 +198,7 @@ int Conf::initConf(const std::string& confFilePath){
 	// 	else if(initStringVector(NET_INTERFACES, line) >= 0){ continue; }
 	}
 
+	SYSLOG(INFO, "CONFIG_FILE " + confFilePath); 
 	return 0;
 }
 

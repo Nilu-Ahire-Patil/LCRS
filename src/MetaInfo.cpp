@@ -12,7 +12,7 @@
 /*-------------------------------------------------------------------------------------------------*/
 
 // meta file from temparory folder that contains all meta file chunks
-metaInfo::metaInfo(const std::string& path){
+metaInfo::metaInfo(const std::string& folderPath){
 
 	// get all chunks
 	// initialse meta file variables

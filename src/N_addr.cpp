@@ -29,6 +29,15 @@ bool n_addr::operator<(const n_addr& other) const {
 // return ip address
 const in_addr& n_addr::ip() const { return this->_ip; }
 
+// return ip address
+std::string n_addr::str_ip() const {
+	char buffer[INET_ADDRSTRLEN]{ 0 };
+
+    	// Convert in_addr to string
+    	if(inet_ntop(AF_INET, &_ip, buffer, INET_ADDRSTRLEN) == nullptr){ return ""; }
+        return std::string(buffer);
+}
+
 // return port
 unsigned short n_addr::port() const { return this->_port; }
 

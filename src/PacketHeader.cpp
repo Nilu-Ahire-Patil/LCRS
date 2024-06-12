@@ -1,5 +1,5 @@
 #ifndef PACKET_HEADER_IMPL_H
-#define PACKET_HEEADER_IMPL_H
+#define PACKET_HEADER_IMPL_H
 
 #include "PacketHeader.h"	// interface
 #include "SysId.h"		// sys_id
@@ -36,6 +36,20 @@ packetType packetHeader::type() const { return this->_type; }
 
 // returns data length in bytes
 unsigned int packetHeader::dataSize() const { return this->_dataSize; }
+
+/*-------------------------------------------------------------------------------------------------*/
+
+// use full for converting packet type to string
+std::string packetTypeToString(packetType type){
+    switch (type) {
+        case packetType::REQ_HANDSHAKE: return "REQ_HANDSHAKE";
+        case packetType::REP_HANDSHAKE: return "REP_HANDSHAKE";
+        case packetType::REQ_ADOPTER: return "REQ_ADOPTER";
+        case packetType::REP_ADOPTER: return "REP_ADOPTER";
+        case packetType::TXT_MESSAGE: return "TXT_MESSAGE";
+        default: return "..?";
+    }
+}
 
 /*-------------------------------------------------------------------------------------------------*/
 #endif

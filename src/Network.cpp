@@ -5,7 +5,7 @@
 #include "Configure.h"		// Conf
 #include "Packet.h"		// packet
 #include "Protocol.h"		// Protocol
-#include "Sys.h"		// SYSLOG, STOP
+#include "Log.h"		// SYSLOG, PKTLOG
 
 #include <thread>		// thread
 #include <unistd.h>		// close
@@ -23,13 +23,14 @@
 /*-------------------------------------------------------------------------------------------------*/
 
 // takes an packet as input and process according that packet type
-void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
+int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 
 	Protocol pt;
 	switch(pkt.type()){
 
 		// case for handshake request by udp
 		case packetType::REQ_HANDSHAKE : { 
+
 			// Exclusive lock for writing
 			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
 
@@ -38,22 +39,25 @@ void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			// send reply for this request with our ip port id
-			pt.repTcpHandshake(Conf::addr_book[pkt.s_id()]);	
+			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
-			break;
+			// send reply for this request with our ip port id
+			return pt.repTcpHandshake(Conf::addr_book[pkt.s_id()]);	
 		}
 
 		// case for handshake reply by udp
 		case packetType::REP_HANDSHAKE : { 
 			// Exclusive lock for writing
 			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+
 			// update addr_book
 			Conf::addr_book[pkt.s_id()] = n_addr(
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			); 
 
-			break;
+			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+
+			return 0;
 		}
 
 		// case for adopter request by udp
@@ -66,10 +70,10 @@ void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			// send reply for this request with our ip port id
-			pt.repTcpAdopter(Conf::addr_book[pkt.s_id()]);	
+			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
-			break;
+			// send reply for this request with our ip port id
+			return pt.repTcpAdopter(Conf::addr_book[pkt.s_id()]);	
 		}
 					  
 		// case for adopter request by udp
@@ -82,31 +86,34 @@ void Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			break;
+			std::cout << "adopter_book.size(): " << Protocol::adopter_book.size() << std::endl;
+
+			return 0;
 		}
 
 		// case for receive send pure text message
 		case packetType::TXT_MESSAGE : {
 			std::string sender_id = pkt.str_sys_id(); 
-			SYSLOG(INFO, sender_id + " : Message receive");
 			std::cout << "<<< " << sender_id << " : " << (char*) pkt.data() << std::endl;
-
-			break;
+			return 0;
 		}
 
 		// default case
-		default : { SYSLOG(INFO, "packet type can't identified"); }
+		default : { 
+			SYSLOG(INFO, "PACKET_NOT_IDENTIFIED"); 
+			return -1;
+		}
 	}
 }
 
 // get mac address of any ailable not selfloop back interface mac address
 std::string Network::getMacAddress(){
     	int soc = -1;
-    	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket creation fail"); }
+    	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return ""; }
 
     	ifaddrs *ifaddr;
 
-    	if(getifaddrs(&ifaddr) < 0){ STOP(ERROR, "fail to find network interfaces"); }
+    	if(getifaddrs(&ifaddr) < 0){ SYSLOG(ERROR, "NETWORK_INTERFACE_NOT_FOUND"); return ""; }
 
 
     	ifreq ifr;
@@ -135,8 +142,8 @@ std::string Network::getMacAddress(){
                 	(unsigned char) ifr.ifr_hwaddr.sa_data[4],
                 	(unsigned char) ifr.ifr_hwaddr.sa_data[5]);
 
-		SYSLOG(INFO, "interface : " + std::string(ifr.ifr_name));
-		SYSLOG(INFO, "mac address : " + std::string(mac_address));
+		SYSLOG(INFO, "NETWORK_INTERFACE " + std::string(ifr.ifr_name));
+		SYSLOG(INFO, "MAC_ADDRESS " + std::string(mac_address));
         
         	return std::string(mac_address);
     	}
@@ -150,7 +157,7 @@ std::string Network::getMacAddress(){
 // finds system interface mac address
 std::string Network::getInterfaceMacAddress(const std::string& interface) {
 	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket not set properly"); }
+	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "BAD_SOCKET"); }
 
 	ifreq ifr;
 	// copy interface name 
@@ -173,25 +180,27 @@ std::string Network::getInterfaceMacAddress(const std::string& interface) {
 int Network::getBroadcastSocket(){
 	// create udp socket
 	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ STOP(ERROR, "socket not set properly"); }
+	if((soc = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 	
 	// set broadcast option to socket
 	int broadcast_flag = 1;
 	if(setsockopt(soc, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast_flag, sizeof(broadcast_flag)) < 0){ 
-		STOP(ERROR, "fail to set broadcast option"); 
+		SYSLOG(ERROR, "BROADCAST_FLAG_FAIL"); 
+		return -1;
 	}
 
 	// Disable loopback for multicast
     	//unsigned char loop = 0;
     	unsigned char loop = 1;
     	if(setsockopt(soc, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0){ 
-		SYSLOG(WARN, "loopback not set.");
+		SYSLOG(WARN, "LOOPBACK_FLAG_FAIL");
 	}
 
 	// set time to leave value for routing the packet
 	int TTL = 99;
 	if(setsockopt(soc, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&TTL , sizeof(TTL)) < 0){ 
-		STOP(ERROR, "fail to set multicast option"); 
+		SYSLOG(ERROR, "MULTICAST_TTL_FAIL"); 
+		return -1;
 	}
 
 	return soc;
@@ -199,12 +208,11 @@ int Network::getBroadcastSocket(){
 
 // binding an udp socket to available port
 int Network::bindUdp(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+	if(soc < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 	
        	// get udp port's	
 	std::set<int> ports = Conf::getInfo<std::set<int>>(UDP_PORTS);
-
-	if(ports.empty()){ STOP(ERROR, "fail to find udp port's"); }
+	if(ports.empty()){ SYSLOG(ERROR, "UDP_PORT_NOT_FOUND"); return -1; }
 
 	// try to bind socket with port one bye one
 	std::set<int>::iterator it = ports.begin();
@@ -217,12 +225,12 @@ int Network::bindUdp(int soc){
 
 		// try to bind port
 		if(bind(soc, (sockaddr*) &add, sizeof(sockaddr_in)) < 0){
-			SYSLOG(WARN, std::to_string(*it) + ":fail to bind port"); 
+			SYSLOG(WARN, "UDP_PORT_BIND_FAIL " + std::to_string(*it)); 
 			++it; 
 		}
-		else { 	SYSLOG(SUCCESS, std::to_string(*it) + ":UDP port configure:" ); break; }
+		else { 	SYSLOG(INFO, "UDP_PORT_BIND_SUCCESS " + std::to_string(*it)); break; }
 	}
-	if(it == ports.end()){ STOP(ERROR, "all udp port's already used"); }
+	if(it == ports.end()){ SYSLOG(ERROR, "UDP_NO_PORT_AVAILABLE"); return -1; }
 
 	return soc;
 }
@@ -230,7 +238,7 @@ int Network::bindUdp(int soc){
 // broadcast packet to all available groups and ports
 int Network::broadcast(packet& pkt){
 	int soc = -1;
-	if((soc = getBroadcastSocket()) < 0){ STOP(ERROR, "socket not set properly"); }
+	if((soc = getBroadcastSocket()) < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	// serialise packet for sending
 	char* buffer = pkt.serialize();
@@ -241,18 +249,17 @@ int Network::broadcast(packet& pkt){
 
 	// get multicast group addresses
 	std::set<std::string> bga = Conf::getInfo<std::set<std::string>>(BGA);
-
-	if(bga.empty()){ STOP(ERROR, "no multicast group found"); }
+	if(bga.empty()){ SYSLOG(ERROR, "MULTICAST_GROUP_NOT_FOUND"); return -1; }
 
 	// send packet to all available multicast group's
 	std::set<std::string>::iterator it = bga.begin(); 
 	while(it != bga.end()){
-		oth_addr.sin_addr.s_addr = inet_addr((*it).c_str()); //broadcast Group Address
+		//broadcast Group Address
+		oth_addr.sin_addr.s_addr = inet_addr((*it).c_str()); 
 
        		// get udp port's	
 		std::set<int> ports = Conf::getInfo<std::set<int>>(UDP_PORTS);
-
-		if(ports.empty()){ STOP(ERROR, "no udp port found"); }
+		if(ports.empty()){ SYSLOG(ERROR, "UDP_PORT_NOT_FOUND"); return -1; }
 
 		// send packet to all available port,s
 		std::set<int>::iterator pit = ports.begin(); 
@@ -260,18 +267,17 @@ int Network::broadcast(packet& pkt){
 			//set port
     			oth_addr.sin_port = htons(*pit);
 
-			// broadcast packet
+			// send broadcast packet
 			int s_byte;
     			if((s_byte = sendto(soc, buffer, pkt.size(), 0, 
 					(sockaddr*)&oth_addr, sizeof(sockaddr_in))) < 0){ 
-				SYSLOG(WARN, *it + ":" + std::to_string(*pit) + ":sending packet fail"); 
+				PKTLOG(FAIL, oth_addr, pkt.type(), s_byte);
 			}
+			else { PKTLOG(SEND, oth_addr, pkt.type(), s_byte); }
 			++pit;
 		}
 		++it;
     	}
-
-	SYSLOG(SUCCESS, "broadcast sent complete");
 
 	// close broadcasting socket
 	close(soc);
@@ -281,7 +287,7 @@ int Network::broadcast(packet& pkt){
 
 // join an udp socket to one available multicast group
 int Network::joinSingleMulticastGroup(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+	if(soc < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	ip_mreq mreq;
 	// connect any available ip
@@ -289,8 +295,7 @@ int Network::joinSingleMulticastGroup(int soc){
 
 	// get multicast group addresses
 	std::set<std::string> bga = Conf::getInfo<std::set<std::string>>(BGA);
-
-	if(bga.empty()){ STOP(ERROR, "no multicast group found"); }
+	if(bga.empty()){ SYSLOG(ERROR, "MULTICAST_GROUP_NOT_FOUND"); return -1; }
 
 	// try to join one multicast group
 	std::set<std::string>::iterator it = bga.begin(); 
@@ -300,27 +305,27 @@ int Network::joinSingleMulticastGroup(int soc){
 
 		// joining the multicast group
 		if(setsockopt(soc, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0){ 
-			SYSLOG(ERROR, *it + ":fail to join multicast group"); 
+			SYSLOG(WARN, "MULTICAST_GROUP_JOIN_FAIL " + std::string(*it)); 
 		}
-		else{ SYSLOG(SUCCESS, *it + ":multicast group join"); return soc; } 
+		else{ SYSLOG(INFO, "MULTICAST_GROUP_JOIN_SUCCESS " + std::string(*it)); return soc; } 
 		++it;
 	}
-	if(it == bga.end()){ STOP(ERROR, "running out of multicast groups"); }
+	if(it == bga.end()){ SYSLOG(ERROR, "MULTICAST_NO_PORT_AVAILABLE"); return -1; }
 
-	return -1;
+	return -1;	// dead code
 }
 
 // receive an packet and take action according its type
-void Network::receveAndProcessUdp(){
+int Network::receveAndProcessUdp(){
 	int soc = -1;
 	// get socket with broadcast permition
-	if((soc = getBroadcastSocket()) < 0){ STOP(ERROR, "socket fail"); }
+	if((soc = getBroadcastSocket()) < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	// bind with avalaible port
-	if((soc = bindUdp(soc)) < 0){ STOP(ERROR, "bind fail"); }
+	if((soc = bindUdp(soc)) < 0){ SYSLOG(ERROR, "UDP_PORT_BIND_FAIL"); return -1; }
 
 	// join with single multicast group
-	if((soc = joinSingleMulticastGroup(soc)) < 0){ STOP(ERROR, "group join fail"); }
+	if((soc = joinSingleMulticastGroup(soc)) < 0){ SYSLOG(ERROR, "MULTICAST_GROUP_JOIN_FAIL"); return -1; }
 
 	// sender address
     	sockaddr_in sender_addr = { 0 };
@@ -332,30 +337,31 @@ void Network::receveAndProcessUdp(){
 		unsigned int recv_byte;
     		if((recv_byte = recvfrom(soc, buffer, MAX_PACKET_SIZE, 0, 
 				(sockaddr*) &sender_addr, &sender_addr_len)) < 0){ 
-			SYSLOG(WARN, "fail to receive packet"); 
+			PKTLOG(FAIL, sender_addr, packetType::REQ_UNKNOWN, recv_byte);
 			continue; 
 		}
 
+		// we can acknowledge to sender for packet
+
 		// convert received message to buffer
+		// deserialize
 		packet pkt(buffer);
-		// pkt.deserialize(buffer);
 
 		// check packet is complete or not
 		if(recv_byte != pkt.size()){ 
-			SYSLOG(WARN, "incomplete packet found"); 
+			PKTLOG(FAIL, sender_addr, pkt.type(), recv_byte);
 			continue; 
 		}
-		SYSLOG(INFO, std::string(inet_ntoa(sender_addr.sin_addr)) + " : " + 
-				packetTypeToString(pkt.type()) + " : " + std::to_string(recv_byte) + " Bytes");
+
+		PKTLOG(RECV, sender_addr, pkt.type(), recv_byte);
 
 		// check the packet and take action according its type 
 		processPacket(pkt, sender_addr);
 
-		// free packet buffer data;
-		// pkt.freePacketData();
 	}
     	close(soc);
 }
+
 /*
 // broadcast our listening port to all connected groups and all available ports 
 int Network::updateAddrSet(unsigned short listening_port){
@@ -382,12 +388,12 @@ int Network::updateAddrSet(unsigned short listening_port){
 int Network::getTcpSocket(){
 	// get tcp socket
 	int soc = -1;
-	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0){ STOP(ERROR, "socket not set properly"); }
+	if((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	// set socket re usability option
 	int optval = 1;
 	if(setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0){ 
-		SYSLOG(WARN, "fail to set socket address re usability"); 
+		SYSLOG(WARN, "SOCKET_REUSEADDR_FLAG_FAIL"); 
 	}
 
 	return soc;
@@ -395,7 +401,7 @@ int Network::getTcpSocket(){
 
 // bind tcp socket with available port and sets listening_port according to it
 int Network::bindAndSetTcpPort(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+	if(soc < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	// self address
 	sockaddr_in add = { 0 };
@@ -404,8 +410,7 @@ int Network::bindAndSetTcpPort(int soc){
  
 	// get tcp port's
 	std::set<int> ports = Conf::getInfo<std::set<int>>(TCP_PORTS);
-
-	if(ports.empty()){ STOP(ERROR, ""); }
+	if(ports.empty()){ SYSLOG(ERROR, "TCP_PORT_NOT_FOUND"); return -1; }
 
 	// try to bind and set tcp port
 	std::set<int>::iterator it = ports.begin();
@@ -414,35 +419,36 @@ int Network::bindAndSetTcpPort(int soc){
 
 		// trying to bind port
 		if(bind(soc, (sockaddr*) &add, sizeof(sockaddr_in)) < 0){ 
-			SYSLOG(WARN, std::to_string(*it) + ":fail to bind port"); 
+			SYSLOG(WARN, "TCP_PORT_BIND_FAIL " + std::to_string(*it)); 
 			++it;
 		}
 		else{
 			Conf::setInfo<unsigned short>(LP, (unsigned short)*it);
-			SYSLOG(SUCCESS, std::to_string(*it) + ":tcp port configure" );
+			SYSLOG(INFO, "TCP_PORT_BIND_SUCCESS " + std::to_string(*it));
 			break;
 		}
 	}
-	if(it == ports.end()){ STOP(ERROR, "running out of tcp port"); }
+	if(it == ports.end()){ SYSLOG(ERROR, "TCP_NO_PORT_AVAILABLE"); return -1; }
 
 	return soc;
 }
 
 // starting listening on tcp socket
 int Network::listenTcp(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+	if(soc < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 	
 	// start listening on tcp socket
 	if(listen(soc, Conf::getInfo<int>(MCB)) < 0){ 
-		STOP(ERROR, "fail listening on socket"); 
+		SYSLOG(ERROR, "TCP_PORT_NOT_FOUND"); 
+		return -1;
 	}
 
 	return soc;
 }
 
 // receive client and processes their packets
-void Network::receveAndProcessTcp(int soc){
-	if(soc < 0){ STOP(ERROR, "socket not set properly"); }
+int Network::receveAndProcessTcp(int soc){
+	if(soc < 0){ SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
 	// sender address
     	sockaddr_in sender_addr = { 0 };
@@ -452,20 +458,17 @@ void Network::receveAndProcessTcp(int soc){
 		// accepting all incoming connections
 		int csoc = -1;
 		if((csoc = accept(soc, (struct sockaddr*) &sender_addr, &sender_addr_len)) < 0){ 
-			SYSLOG(WARN, "tcp accept fail");
+			SYSLOG(WARN, "TCP_ACCEPT_FAIL");
 			continue; 
 		}
-
-		SYSLOG(INFO, "new connection accept");
 
 		// receive packet 
 		char buffer[MAX_PACKET_SIZE] = { '\0' };
 		unsigned int recv_byte;
     		if((recv_byte = recv(csoc, buffer, MAX_PACKET_SIZE, 0)) < 0){ 
-			SYSLOG(WARN, "fail to accept message"); 
+			PKTLOG(FAIL, sender_addr, packetType::REQ_UNKNOWN, recv_byte);
 			continue; 
 		}
-		else { SYSLOG(SUCCESS, std::to_string(recv_byte) + " bytes received"); }
 
 		// we can send acknowledgement 
 
@@ -478,18 +481,15 @@ void Network::receveAndProcessTcp(int soc){
 
 		// check packet is complete or not
 		if(recv_byte != pkt.size()){ 
-			SYSLOG(INFO, std::to_string(pkt.size()) + " incomplete packet found"); 
-		//	continue; 
+			PKTLOG(FAIL, sender_addr, pkt.type(), recv_byte);
+			continue; 
 		}
 
-		SYSLOG(SUCCESS, std::string(inet_ntoa(sender_addr.sin_addr)) + " : "
-			       	+ packetTypeToString(pkt.type()) + " : " + std::to_string(recv_byte) + " Bytes");
+		PKTLOG(RECV, sender_addr, pkt.type(), recv_byte);
 
 		// check the packet and take action according its type 
 		processPacket(pkt, sender_addr);
 
-		// free packet buffer data;
-		// pkt.freePacketData();
 	}
     	close(soc);
 }
@@ -498,7 +498,8 @@ void Network::receveAndProcessTcp(int soc){
 int Network::setTcpListenPort(){
 	int soc = -1;
 	if((soc = listenTcp(bindAndSetTcpPort(getTcpSocket()))) < 0){ 
-		STOP(ERROR, "socket not set properly"); 
+		SYSLOG(ERROR, "BAD_SOCKET"); 
+		return -1;
 	}
 
 	return soc;
@@ -506,8 +507,9 @@ int Network::setTcpListenPort(){
 
 // connect provided socket with provided ip and port pair
 int Network::connectTcp(int soc, in_addr ip, unsigned short port){
-	if(soc < 0) return soc;
+	if(soc < 0) { SYSLOG(ERROR, "BAD_SOCKET"); return -1; }
 
+	// send_to address
 	sockaddr_in s_addr;
 	socklen_t s_addr_len = sizeof(s_addr);
 
@@ -516,8 +518,8 @@ int Network::connectTcp(int soc, in_addr ip, unsigned short port){
 	s_addr.sin_port = htons(port);
 	s_addr.sin_addr = ip;
 
-	if(connect(soc,(sockaddr*) &s_addr, s_addr_len) < 0) { 
-		SYSLOG(ERROR, ""); 
+	if(connect(soc,(sockaddr*) &s_addr, s_addr_len) < 0){ 
+		SYSLOG(ERROR, "TCP_CONNECT_FAIL"); 
 		return -1;
 	}
 
@@ -526,27 +528,33 @@ int Network::connectTcp(int soc, in_addr ip, unsigned short port){
 
 // send packet to provided ip and port pair
 int Network::sendTcpPacket(packet& pkt, const n_addr& receiver_addr){
+	// get tcp soocket
 	int soc = -1;
 	if((soc = getTcpSocket()) < 0){ 
-		SYSLOG(ERROR, "socket not set properly"); 
+		SYSLOG(ERROR, "BAD_SOCKET"); 
 		close(soc);
 		return -1;
 	}
 	
+	// connect to receiver
 	if((soc = connectTcp(soc, receiver_addr.ip() , receiver_addr.port())) < 0){
-		SYSLOG(ERROR, "connection not establish"); 
+		//SYSLOG(ERROR, "TCP_CONNECT_FAIL"); 
 		close(soc);
 		return -1;
 	}
 
+    	sockaddr_in recv_addr = { 0 };
+	recv_addr.sin_addr = receiver_addr.ip();
+	recv_addr.sin_port = htons(receiver_addr.port());
+
+	// send tcp packet
 	int send_Bytes = 0;
-	//SYSLOG(SUCCESS, to_string(pkt.size()) + " packet size");
 	if((send_Bytes = send(soc, pkt.serialize(), pkt.size(), 0)) <= 0){
-		SYSLOG(ERROR, "message send fail");
+		PKTLOG(FAIL, recv_addr, pkt.type(), send_Bytes);
 		close(soc);
 		return -1;
 	}
-	else{ SYSLOG(SUCCESS, std::to_string(send_Bytes) + " bytes send"); }
+	PKTLOG(SEND, recv_addr, pkt.type(), send_Bytes);
 
 	// we can receive acknowledgement here
 

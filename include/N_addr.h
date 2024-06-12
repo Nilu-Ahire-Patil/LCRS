@@ -11,7 +11,6 @@ struct n_addr {
 		in_addr _ip{};			// node ip address
 		unsigned short _port{};		// node port
 
-
 	public:
 		// default constructor
 		n_addr();
@@ -27,6 +26,9 @@ struct n_addr {
 
 		// return ip address
 		const in_addr& ip() const;			
+
+		// return ip address
+		std::string str_ip() const;			
 
 		// return port
 		unsigned short port() const;	

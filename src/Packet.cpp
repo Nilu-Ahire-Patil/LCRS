@@ -72,19 +72,6 @@ packetType packet::type() const { return this->_header.type(); }
 // returns packet data
 char* packet::data() const { return this->_data; }
 
-/*-------------------------------------------------------------------------------------------------*/
-
-// use full for converting packet type to string
-std::string packetTypeToString(packetType type){
-    switch (type) {
-        case packetType::REQ_HANDSHAKE: return "REQ_HANDSHAKE";
-        case packetType::REP_HANDSHAKE: return "REP_HANDSHAKE";
-        case packetType::REQ_ADOPTER: return "REQ_ADOPTER";
-        case packetType::REP_ADOPTER: return "REP_ADOPTER";
-        case packetType::TXT_MESSAGE: return "TXT_MESSAGE";
-        default: return "..?";
-    }
-}
 
 /*-------------------------------------------------------------------------------------------------*/
 #endif

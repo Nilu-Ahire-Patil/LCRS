@@ -1,7 +1,7 @@
 #ifndef MAIN
 #define MAIN
 
-#include "Sys.h"		// getCurrentDateString
+#include "Log.h"		// getCurrentDateString
 #include "Connect.h"		// Connect
 #include "Packet.h"		// Packet
 #include "Protocol.h"		// Protocol
@@ -21,7 +21,8 @@ CMD str_to_cmd(const std::string& cmd){
 	static const std::unordered_map<std::string, CMD> commandMap = {
 		{"store", CMD::STORE},
 		{"msg", CMD::MESSAGE},
-        	{"exit", CMD::EXIT}
+        	{"exit", CMD::EXIT},
+        	{"q", CMD::EXIT}
 	};
 	auto it = commandMap.find(cmd);
     	if(it != commandMap.end()){ return it->second; }
@@ -56,7 +57,7 @@ int main(int argc, char** argv)
 				std::string ip;
 				unsigned int port;
 				std::string msg;
-				std::cout << "ip port message";
+				std::cout << "ip port message\n";
 				std::cin >> ip;
 				std::cin >> port;
 				std::cin >> msg;
@@ -67,13 +68,14 @@ int main(int argc, char** argv)
 
 			case CMD::STORE : {
 				pro.reqUdpAdopter();
+				break;
 			}
 
 			case CMD::UNKNOWN: {
-      				std::cout << "unknown command" << std::endl;
+      				std::cout << "command not found: " << command << std::endl;
 				break;
 			}
-			default: { std::cout << "unknown command" << std::endl; }
+			default: { std::cout << "command not found: " << command << std::endl; }
 		}
 	}
 

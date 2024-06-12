@@ -2,7 +2,7 @@
 #define CONNECT_IMPL_H
 
 #include "Connect.h"		// interface
-#include "Sys.h"		// Network
+#include "Log.h"		// STOP
 #include "Configure.h"		// Conf
 #include "Network.h"		// Network
 #include "Protocol.h"		// Protocol
@@ -15,16 +15,16 @@
 Connect::Connect(){
 	Conf::initConf();
 	Network nt;
-	if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, ""); }
-	if(Conf::getInfo<unsigned short>(LP) == 0){ STOP(ERROR, ""); }
+	if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, "TCP_LISTEN_FAIL"); }
+	if(Conf::getInfo<unsigned short>(LP) == 0){ STOP(ERROR, "BAD_PORT"); }
 }
 
 // connect with other node with user provided configuration
 Connect::Connect(const char* confFilePath){
 	Conf::initConf(confFilePath);
 	Network nt;
-	if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, ""); }
-	if(Conf :: getInfo<unsigned short>(LP) == 0){ STOP(ERROR, ""); }
+	if((this->soc = nt.setTcpListenPort()) < 0){ STOP(ERROR, "TCP_LISTEN_FAIL"); }
+	if(Conf :: getInfo<unsigned short>(LP) == 0){ STOP(ERROR, "BAD_PORT"); }
 }
 
 // initialize tcp base packet reply

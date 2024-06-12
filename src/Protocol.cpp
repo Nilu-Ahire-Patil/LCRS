@@ -3,7 +3,7 @@
 
 #include "Protocol.h"		// interface
 
-#include "Sys.h"		// SYSLOG
+#include "Log.h"		// SYSLOG
 #include "Configure.h"		// Conf
 #include "Network.h"		// Network
 
@@ -23,30 +23,33 @@ int Protocol::reqUdpHandshake(){
 
 	// broadcast our listening port to all connected groups and all available ports 
 	unsigned short listening_port = 0;
-	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ STOP(ERROR, ""); }
+	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ 
+		SYSLOG(ERROR, "BAD_PORT"); 
+		return -1;
+	}
 
 	// creating packet of listening port with port flag
 	packet pkt(packetType::REQ_HANDSHAKE, &listening_port, sizeof(unsigned short));
 
 	//send listening port in broadcast
 	Network nt;
-	if(nt.broadcast(pkt) < 0){ STOP(ERROR, "broadcasting failed"); }
-
-	return 0;
+	return nt.broadcast(pkt);
 }
 
 int Protocol::repTcpHandshake(const n_addr addr){
 	// broadcast our listening port to all connected groups and all available ports 
 	unsigned short listening_port = 0;
-	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ STOP(ERROR, ""); }
+	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ 
+		SYSLOG(ERROR, "BAD_PORT"); 
+		return -1;
+	}
 
 	// creating packet of listening port with port flag
 	packet pkt(packetType::REP_HANDSHAKE, &listening_port, sizeof(unsigned short));
 
 	// send listening port packet using tcp
 	Network nt;
-	nt.sendTcpPacket(pkt, addr);
-	return 0;
+	return nt.sendTcpPacket(pkt, addr);
 }
 
 // request adopter nodes for store chunk of files
@@ -54,16 +57,17 @@ int Protocol::reqUdpAdopter(){
 
 	// reply with our listening port  
 	unsigned short listening_port = 0;
-	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ STOP(ERROR, ""); }
+	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){
+		SYSLOG(ERROR, "BAD_PORT"); 
+		return -1;
+	}
 
 	// creating packet of listening port with port flag
 	packet pkt(packetType::REQ_ADOPTER, &listening_port, sizeof(unsigned short));
 
 	//send listening port in broadcast
 	Network nt;
-	if(nt.broadcast(pkt) < 0){ STOP(ERROR, "broadcasting failed"); }
-	
-	return 0;
+	return nt.broadcast(pkt);
 }
 
 // reply for request adopter nodes for store chunk of files
@@ -71,22 +75,24 @@ int Protocol::repTcpAdopter(const n_addr addr){
 	// check in our memory the sppace is empty or not
 	
 	// if we have empty space then reply 
-	// other wise no neet to reply
+	// other wise no need to reply
 
 	// reply with our listening port  
 	// we can also add more information
 	// like remaining space
 	// maximum capacity and other
 	unsigned short listening_port = 0;
-	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ STOP(ERROR, ""); }
+	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ 
+		SYSLOG(ERROR, "BAD_PORT"); 
+		return -1;
+       	}
 
 	// creating packet of listening port with port flag
 	packet pkt(packetType::REP_ADOPTER, &listening_port, sizeof(unsigned short));
 
 	// send listening port packet using tcp
 	Network nt;
-	nt.sendTcpPacket(pkt, addr);
-	return 0;
+	return nt.sendTcpPacket(pkt, addr);
 }
 	
 
@@ -98,9 +104,7 @@ int Protocol::repTcpMessage(const n_addr& addr, const std::string& msg){
 
 	// send packet using tcp
 	Network nt;
-	nt.sendTcpPacket(pkt, addr);
-	
-	return 0;
+	return nt.sendTcpPacket(pkt, addr);
 }
 
 

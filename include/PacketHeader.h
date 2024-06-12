@@ -12,7 +12,8 @@ enum class packetType {
 	REP_HANDSHAKE,
 	REQ_ADOPTER,
 	REP_ADOPTER,
-	TXT_MESSAGE
+	TXT_MESSAGE,
+	REQ_UNKNOWN
 };
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -45,6 +46,11 @@ struct packetHeader {
 		// returns packet data size	
 		unsigned int dataSize() const;
 };
+
+/*-------------------------------------------------------------------------------------------------*/
+
+// use for converting packet type to string
+std::string packetTypeToString(packetType);
 
 /*-------------------------------------------------------------------------------------------------*/
 /*

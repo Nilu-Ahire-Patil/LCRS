@@ -1,7 +1,7 @@
-#ifndef SYS_IMPL_H
-#define SYS_IMPL_H
+#ifndef LOG_IMPL_H
+#define LOG_IMPL_H
 
-#include "Sys.h"		// interface
+#include "Log.h"		// interface
 
 #include <ctime>		// time
 				// localtime
@@ -18,7 +18,7 @@
 /*-------------------------------------------------------------------------------------------------*/
 
 // record system error along with user provided message in standerd srror file
-void Sys::log(const char* fileName, int lineNo, const char* logType, const std::string& msg) {
+void Log::log(const char* logType, const std::string& msg, const char* fileName, int lineNo){
 	// current time stamp
 	time_t now = std::time(NULL);
 	char timestamp[64];
@@ -27,22 +27,55 @@ void Sys::log(const char* fileName, int lineNo, const char* logType, const std::
 	// system log line format
 	std::string line = "[" + std::string(timestamp) + "]";
        	line += "[" + std::string(logType) + "]";
-      	line += ":" + std::string(fileName);
-       	line += ":" + std::to_string(lineNo);
 	line += ":" + std::string(msg);
-
+	line += ":";
 	// check for system error
 	if(errno){ 
-		line += ":" + std::string(strerror(errno)); 
+		line += std::string(strerror(errno)); 
 		errno = 0;
 	}
+
+	// file name and line number for debug
+      	line += ":" + std::string(fileName);
+       	line += ":" + std::to_string(lineNo);
 
 	// print system log in standeard error file
 	fprintf(stderr, "%s\n", line.c_str());
 	fflush(stderr);
 }
 
-std::string Sys::getCurrentDateString() {
+void Log::pktlog(const char* sendRecv, const std::string& sender_sendTo,
+		std::string pType, unsigned int size, const char* fileName, int lineNo){
+
+	// current time stamp
+	time_t now = std::time(NULL);
+	char timestamp[64];
+	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+	// system log line format
+	std::string line = "[" + std::string(timestamp) + "]";
+       	line += "[" + std::string(sendRecv) + "]";
+	line += "[" + sender_sendTo + "]";
+	line += "[" + pType + "]";
+	line += ":" + std::to_string(size);
+
+	line += ":";
+	// check for system error
+	if(errno){ 
+		line += std::string(strerror(errno)); 
+		errno = 0;
+	}
+
+	// file name and line number for debug
+      	line += ":" + std::string(fileName);
+       	line += ":" + std::to_string(lineNo);
+
+	// print system log in standeard error file
+	fprintf(stderr, "%s\n", line.c_str());
+	fflush(stderr);
+}
+
+std::string Log::getCurrentDateString() {
     // Get current time
     std::time_t t = std::time(nullptr);
 

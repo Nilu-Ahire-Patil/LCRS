@@ -3,6 +3,7 @@
 
 #include "File.h"		// interface
 #include "FileInfo.h"		// fileInfo
+#include "Protocol.h"		// Protocol
 
 #include <string>		// string
 	
@@ -12,9 +13,15 @@
 // return 0 on success
 // return non zero value on error
 int file::store(const std::string& path){
+	// request for adopter
+	Protocol pt;
+	pt.reqUdpAdopter();
+
 	// create file instance
+	fileInfo(path);
 	// check permeations of file
 	// decide file chunk size
+	metaFile(fileInfo);
 	// create meta file
 	// create file chunks of decided size
 	// send file along with meta file using network class

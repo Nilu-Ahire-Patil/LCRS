@@ -11,7 +11,7 @@
 
 class Network {
 
-		void processPacket(packet&, sockaddr_in&);
+		int processPacket(packet&, sockaddr_in&);
 
 		int getBroadcastSocket();
 		int bindUdp(int);
@@ -32,8 +32,8 @@ class Network {
 
 		int setTcpListenPort();
 
-		void receveAndProcessUdp();
-		void receveAndProcessTcp(int);
+		int receveAndProcessUdp();
+		int receveAndProcessTcp(int);
 
 		int broadcast(packet&);
 		int sendTcpPacket(packet&, const n_addr&);
