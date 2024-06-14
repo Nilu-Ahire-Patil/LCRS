@@ -10,7 +10,7 @@ class Storage {
 
 	public:
 		// append chunk info in their apropiet file
-		int storeMeta(const sys_id&,const chunkHeader&);
+		int storeMeta(const sys_id&, const chunkHeader&);
 
 		// store chunk in appropiate file
 		int storeChunk(const chunk&);

@@ -41,14 +41,14 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+		//	std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			// send reply for this request with our ip port id
 			return pt.repTcpHandshake(Conf::addr_book[pkt.s_id()]);	
 		}
 
 		// case for handshake reply by udp
-		case packetType::REP_HANDSHAKE : { 
+		case packetType::RES_HANDSHAKE : { 
 			// Exclusive lock for writing
 			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
 
@@ -57,7 +57,7 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			); 
 
-			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+	//		std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			return 0;
 		}
@@ -72,7 +72,7 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+	//		std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			// send reply for this request with our ip port id
 			Protocol pt;
@@ -80,7 +80,7 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 		}
 					  
 		// case for adopter request by udp
-		case packetType::REP_ADOPTER : { 
+		case packetType::RES_ADOPTER : { 
 			// Exclusive lock for writing
 			std::unique_lock<std::shared_mutex> lock(Protocol::adopter_bookMutex);  
 
@@ -89,7 +89,7 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 				sender_addr.sin_addr, *(unsigned short*) pkt.data()
 			);
 
-			std::cout << "adopter_book.size(): " << Protocol::adopter_book.size() << std::endl;
+	//		std::cout << "adopter_book.size(): " << Protocol::adopter_book.size() << std::endl;
 
 			return 0;
 		}
@@ -97,54 +97,42 @@ int Network::processPacket(packet& pkt, sockaddr_in& sender_addr){
 		// case for chunk store request by tcp
 		case packetType::REQ_STORE : { 
 			// Exclusive lock for writing
-			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+		//	std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
 
 			// update addr_book
-			Conf::addr_book[pkt.s_id()] = n_addr(
-				sender_addr.sin_addr, *(unsigned short*) pkt.data()
-			);
+		//	Conf::addr_book[pkt.s_id()] = n_addr(
+		//		sender_addr.sin_addr, *(unsigned short*) pkt.data()
+		//	);
 
-			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+		//	std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			// deserialize chunk
-			chunk chnk(pkt.data() + sizeof(unsigned short));
+		//	chunk chnk(pkt.data() + sizeof(unsigned short));
 
 			// send reply for this request with our ip port id
-			if(pt.repTcpStore(Conf::addr_book[pkt.s_id()], chnk) < 0){
+			return pt.repTcpStore(Conf::addr_book[pkt.s_id()], chunk(pkt.data()));
 				
-				// send chunk id with ERR_STORE request
-				chunkHeader chnk_id = chnk.id();
-
-				// creating packet of chunk id with ERR_STORE FLAG
-				packet pkt(packetType::ERR_STORE,(void*) chnk_id.serialize(), sizeof(chunkHeader));
-
-				// send chunk id with ERR_STORE request
-				Network nt;
-				return nt.sendTcpPacket(pkt, Conf::addr_book[pkt.s_id()]);
-			}	
-
-			return 0;
 		}
 
 		// case for chunk store successfully
-		case packetType::REP_STORE : { 
+		case packetType::SUC_STORE : { 
 
 			// Exclusive lock for writing
-			std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
+		//	std::unique_lock<std::shared_mutex> lock(Conf::addr_bookMutex);  
 
 			// update addr_book
-			Conf::addr_book[pkt.s_id()] = n_addr(
-				sender_addr.sin_addr, *(unsigned short*) pkt.data()
-			);
+		//	Conf::addr_book[pkt.s_id()] = n_addr(
+		//		sender_addr.sin_addr, *(unsigned short*) pkt.data()
+		//	);
 
-			std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
+		//	std::cout << "addr_book.size(): " << Conf::addr_book.size() << std::endl;
 
 			// deserialise chunk id
-			chunkHeader chnk_id(pkt.data());
+		//	chunkHeader chnk_id(pkt.data());
 
 			// update that entry of chunk in metafile on secondary storage
-			Storage st;
-			st.storeMeta(pkt.s_id(), chnk_id);
+		//	Storage st;
+		//	st.storeMeta(pkt.s_id(), chnk_id);
 
 			return 0;
 		}
@@ -253,8 +241,8 @@ int Network::getBroadcastSocket(){
 	}
 
 	// Disable loopback for multicast
-    	//unsigned char loop = 0;
-    	unsigned char loop = 1;
+  	unsigned char loop = 1; // 1 for loopback on
+				// 0 for loopback off
     	if(setsockopt(soc, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0){ 
 		SYSLOG(WARN, "LOOPBACK_FLAG_FAIL");
 	}
@@ -336,11 +324,16 @@ int Network::broadcast(packet& pkt){
 					(sockaddr*)&oth_addr, sizeof(sockaddr_in))) < 0){ 
 				PKTLOG(FAIL, oth_addr, pkt.type(), s_byte);
 			}
-			else { PKTLOG(SEND, oth_addr, pkt.type(), s_byte); }
+		//	else { PKTLOG(SEND, oth_addr, pkt.type(), s_byte); }
 			++pit;
 		}
 		++it;
+
     	}
+
+	delete[] buffer;
+
+	SYSLOG(INFO, packetTypeToString(pkt.type()) + " BROADCAST_COMPLETE");
 
 	// close broadcasting socket
 	close(soc);
@@ -545,10 +538,8 @@ int Network::receveAndProcessTcp(int soc){
 		// check packet is complete or not
 		if(recv_byte != pkt.size()){ 
 			PKTLOG(FAIL, sender_addr, pkt.type(), recv_byte);
-			continue; 
-		}
-
-		PKTLOG(RECV, sender_addr, pkt.type(), recv_byte);
+//			continue; 
+		} else { PKTLOG(RECV, sender_addr, pkt.type(), recv_byte); }
 
 		// check the packet and take action according its type 
 		processPacket(pkt, sender_addr);

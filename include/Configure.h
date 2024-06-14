@@ -15,7 +15,7 @@
 /*-------------------------------------------------------------------------------------------------*/
 #define DEFAULT_CONFIG_PATH "etc/lcrs.config"
 
-#define MAX_PACKET_SIZE 1024
+#define MAX_PACKET_SIZE 8192	// 8kb
 #define MAX_LINE_LENGTH 100
 #define DELIMITER 	" = "
 #define NAMESPACE_DNS 	"6ba7b810-9dad-11d1-80b4-00c04fd430c8"
@@ -40,6 +40,9 @@
 
 #define AVL_MEM		"AVL_MEM"
 #define V_AVL_MEM	0
+
+#define DDD		"default_data_directory"
+#define V_DDD		"~/.lcrsData/"	
 
 // interface set for mac address
 // order of interfaces matters
@@ -82,6 +85,9 @@ class Conf {
 		static int initSysId();
 
 	public:
+		// generate system id
+		static sys_id genSysId(const std::string&);
+
 		// initialise system id
 		static const sys_id& getSysId();
 

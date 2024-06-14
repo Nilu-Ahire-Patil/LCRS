@@ -43,9 +43,15 @@ unsigned int packetHeader::dataSize() const { return this->_dataSize; }
 std::string packetTypeToString(packetType type){
     switch (type) {
         case packetType::REQ_HANDSHAKE: return "REQ_HANDSHAKE";
-        case packetType::REP_HANDSHAKE: return "REP_HANDSHAKE";
+        case packetType::RES_HANDSHAKE: return "RES_HANDSHAKE";
         case packetType::REQ_ADOPTER: return "REQ_ADOPTER";
-        case packetType::REP_ADOPTER: return "REP_ADOPTER";
+        case packetType::RES_ADOPTER: return "RES_ADOPTER";
+	case packetType::REQ_STORE: return "REQ_STORE";
+	case packetType::SUC_STORE: return "SUC_STORE";
+	case packetType::ERR_STORE: return "ERR_STORE";
+	case packetType::REQ_RETRIEVE: return "REQ_RETRIEVE";
+	case packetType::RES_RETRIEVE: return "RES_RETRIEVE";
+	case packetType::REQ_UNKNOWN: return "REQ_UNKNOWN";
         case packetType::TXT_MESSAGE: return "TXT_MESSAGE";
         default: return "..?";
     }

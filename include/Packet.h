@@ -25,7 +25,7 @@ struct packet {
 		// initialise packet
 		packet(packetType, void*, unsigned int);
 
-		// default constructor
+		// distructor
 		~packet();
 
 		// convert packet to continuous memory block of characters

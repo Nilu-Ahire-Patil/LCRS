@@ -12,11 +12,16 @@
 
 // set file stat variable with provided file path
 fileInfo::fileInfo(const std::string& path){
-	if(stat(path.c_str(), &this->_fileStat) < 0){ SYSLOG(INFO, "FILE_STAT_FAIL"); }
-	// check for file type accept normal file
-	// don't access folder
-	// also check how it works with zip and other type of files
-	this->_path = path;
+	if(stat(path.c_str(), &this->_fileStat) < 0){ 
+		SYSLOG(INFO, "FILE_STAT_FAIL");
+       		this->_path = nullptr;
+	}
+	else {
+		// check for file type accept normal file
+		// don't access folder
+		// also check how it works with zip and other type of files
+		this->_path = path;
+	}
 }
 
 // returns file path

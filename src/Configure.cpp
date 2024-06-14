@@ -40,6 +40,7 @@ int Conf::loadDefaultConfig(){
 	confData[BGA] = std::set<std::string>{ V_BGA };
 	confData[LP] = (unsigned short) 0;
 	confData[AVL_MEM] = (int) 0;
+	confData[DDD] = std::string(V_DDD);
 	//confData[NET_INTERFACES] = std::vector<std::string>{ V_NET_INTERFACES };
 	
 	// set unique system id for uniquely identify in network
@@ -156,6 +157,22 @@ int Conf::initSysId(){
 	return 0;
 }
 
+// generate systen id
+sys_id Conf::genSysId(const std::string& str){
+    	// DNS namespace UUID
+	uuid_t namespace_uuid; 
+    	const char* namespace_dns = NAMESPACE_DNS;
+	uuid_parse(namespace_dns, namespace_uuid); // Parse the DNS namespace UUID
+
+    	// Generate the UUID v5
+    	uuid_t uuid; 
+    	uuid_generate_sha1(uuid, namespace_uuid, str.c_str(), str.size());
+
+	// asign system value to an static variable
+	return sys_id(uuid);
+}
+
+
 // initialise system id
 const sys_id& Conf::getSysId(){
 
@@ -197,6 +214,7 @@ int Conf::initConf(const std::string& confFilePath){
 		else if(initIntSet(UDP_PORTS, line) >= 0){ continue; }
 		else if(initStringSet(BGA, line) >= 0){ continue; }
 		else if(initInt(AVL_MEM, line) >= 0){ continue; }
+		else if(initString(DDD, line) >= 0){ continue; }
 	// 	else if(initStringVector(NET_INTERFACES, line) >= 0){ continue; }
 	}
 

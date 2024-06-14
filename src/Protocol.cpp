@@ -48,7 +48,7 @@ int Protocol::repTcpHandshake(const n_addr addr){
 	}
 
 	// creating packet of listening port with port flag
-	packet pkt(packetType::REP_HANDSHAKE, &listening_port, sizeof(unsigned short));
+	packet pkt(packetType::RES_HANDSHAKE, &listening_port, sizeof(unsigned short));
 
 	// send listening port packet using tcp
 	Network nt;
@@ -96,7 +96,7 @@ int Protocol::repTcpAdopter(const n_addr addr){
        	}
 
 	// creating packet of listening port with port flag
-	packet pkt(packetType::REP_ADOPTER, &listening_port, sizeof(unsigned short));
+	packet pkt(packetType::RES_ADOPTER, &listening_port, sizeof(unsigned short));
 
 	// send listening port packet using tcp
 	Network nt;
@@ -105,22 +105,14 @@ int Protocol::repTcpAdopter(const n_addr addr){
 
 // send chunk to address using tcp
 int Protocol::reqTcpStore(const n_addr addr, const chunk& chnk){
-	// send request with our port and chunk data
-	unsigned short listening_port = 0;
-	if((listening_port = Conf::getInfo<unsigned short>(LP)) == 0){ 
-		SYSLOG(ERROR, "BAD_PORT"); 
-		return -1;
-       	}
 
-	// reserve memory for port and data
-	char serializedData[sizeof(unsigned short) + chnk.dataSize()]{ 0 };
-
-	// copy port and chunk data
-	memcpy(serializedData, &listening_port, sizeof(unsigned short));
-	memcpy(serializedData + (sizeof(unsigned short)), chnk.serialize(), chnk.dataSize());
+	char* buffer = chnk.serialize();
 
 	// creating packet of listening port with port flag
-	packet pkt(packetType::REQ_STORE, &listening_port, sizeof(unsigned short) + chnk.dataSize());
+	packet pkt(packetType::REQ_STORE, buffer, chnk.dataSize());
+
+	// free chunk serialize
+	delete[] buffer;
 
 	// send listening port packet using tcp
 	Network nt;
@@ -144,14 +136,21 @@ int Protocol::repTcpStore(const n_addr addr, const chunk& chnk){
 	}
 
 	// send chunk id return in case of success
-	chunkHeader chnk_id = chnk.id();
+	char* buffer = chnk.serialize();
 
 	// creating packet of chunk id
-	packet pkt(packetType::REP_STORE, chnk_id.serialize(), sizeof(chunkHeader));
+	packet pkts(packetType::SUC_STORE, buffer, sizeof(chunkHeader));
 
 	// send chunk id return in case of success
 	Network nt;
-	return nt.sendTcpPacket(pkt, addr);
+	if(nt.sendTcpPacket(pkts, addr) < 0){
+
+		// creating packet of chunk id with ERR_STORE FLAG
+		packet pkte(packetType::ERR_STORE, buffer, sizeof(chunkHeader));
+
+		// send chunk id with ERR_STORE request
+		return nt.sendTcpPacket(pkte, addr);
+	}	
 }
 
 // send message using tcp

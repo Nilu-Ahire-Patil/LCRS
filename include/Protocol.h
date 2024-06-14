@@ -22,6 +22,9 @@ class Protocol {
 		// friend class for access adopter_book
 		friend class Network;
 
+		// friend class for access adopter_book
+		friend class file;
+
 	public:
 		// udp handshake request
 		int reqUdpHandshake();

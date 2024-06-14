@@ -33,13 +33,13 @@ packet::packet(packetType type, void* data, unsigned int size): _header(type, si
 	memcpy(this->_data, data, size);
 }
 
-// default distructor
+// distructor
 packet::~packet(){ if(this->_data != nullptr){ delete[] this->_data; this->_data = nullptr; } }
 
 // converts packet to continuous memory block of characters
 char* packet::serialize() const {
 	// reserve continues memory for store packet data
-	char* buffer = new char[this->size()]{ '\0' };
+	char* buffer = new char[ sizeof(packetHeader) + this->size()]{ '\0' };
 
 	// copy header data first
 	memcpy(buffer, &this->_header, this->headerSize());

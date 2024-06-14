@@ -11,6 +11,10 @@ struct fileInfo {
 		struct stat _fileStat;		// file information
 
 	public:
+
+		// check that file is loaded or not
+		int isValid() const;
+
 		// set file stat variable with provided file path
 		fileInfo(const std::string& path);
 

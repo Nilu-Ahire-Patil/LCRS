@@ -6,11 +6,15 @@
 
 #include <string>		// string
 #include <sys/stat.h>		// stat
+				//
+
 
 struct chunkHeader {
 	private:
-		sys_id _s_id;
+		sys_id _s_id;	// file name hash
+				// add hash for file intigriity check
 		unsigned int _no;
+		size_t _dataSize;
 		
 	public: 
 		// default constructor
@@ -19,38 +23,49 @@ struct chunkHeader {
 		// serialise chunkHeader
 		chunkHeader(const char*);
 
+		chunkHeader(sys_id, unsigned int, size_t);
+
+		size_t dataSize() const;
+
 		// serialise chunkHeader
 		char* serialize() const;
+
+		const sys_id& id() const;
+
+		unsigned int no() const;
 };
 
 struct chunk {
 	private:
-		struct chunkHeader _id;
-		size_t _dataSize;
+		struct chunkHeader _header;
+		char* _data;
 	public:
 
 		chunk();
 
+		~chunk();
+
 		// deserialise chuk
 		chunk(const char*);
 
+		// create chunk
+		chunk(sys_id, int, size_t, char*);
+
 		// returns chunkHeader
-		const chunkHeader& id() const; 
+		const chunkHeader& header() const; 
 
 		// return block size
 		size_t dataSize() const;
 
 		// serialise chunkHeader
 		char* serialize() const;
-		// chunk hash
-		// chunk size
-		// chunk adoptive node id
-		// ip
-		// port
-		// status flag sent receive replicated etc
+
+		const sys_id& id() const;
+
+		const char* data() const;
+		
+		unsigned int no() const;
 };
-
-
 
 /*-------------------------------------------------------------------------------------------------*/
 struct metaInfo {
@@ -60,8 +75,7 @@ struct metaInfo {
 		blksize_t _blockSize;	// block size in bytes
 					// 0 for variable length blocks
 			
-		chunk* _chunk;		// array of chunks;
-		
+	//	chunk* _chunk;		// array of chunks;
 
 	public:
 		// set file stat variable with provided metafile path file path
@@ -71,7 +85,7 @@ struct metaInfo {
 		metaInfo(const fileInfo& fileInfo);
 
 		// distrector for free chunk*
-		~metaInfo(){ delete[] _chunk; _chunk = nullptr; }
+	//	~metaInfo(){ delete[] _chunk; _chunk = nullptr; }
 
 		// access and modify chunk data
 		chunk& operator[](int);

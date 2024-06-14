@@ -5,6 +5,7 @@
 #include "Connect.h"		// Connect
 #include "Packet.h"		// Packet
 #include "Protocol.h"		// Protocol
+#include "File.h"		// store
 
 #include <string>		// string
 #include <iostream>		// cin, cout
@@ -14,6 +15,7 @@ enum class CMD {
 	UNKNOWN,
 	STORE,
 	MESSAGE,
+	LOG,
 	EXIT
 };
 
@@ -21,6 +23,7 @@ CMD str_to_cmd(const std::string& cmd){
 	static const std::unordered_map<std::string, CMD> commandMap = {
 		{"store", CMD::STORE},
 		{"msg", CMD::MESSAGE},
+		{"log", CMD::LOG},
         	{"exit", CMD::EXIT},
         	{"q", CMD::EXIT}
 	};
@@ -45,7 +48,7 @@ int main(int argc, char** argv)
 
 	Protocol pro; 
 	while(1){	
-		std::cout << ">>> ";
+		std::cout << "\n>>> ";
 		std::string command;
 		std::cin >> command;
 
@@ -54,12 +57,20 @@ int main(int argc, char** argv)
 			// exit command
 			case CMD::EXIT: { return 0; }
 
+			case CMD::LOG: { 
+				FILE* file = nullptr;
+				std::string logFilePath = "log/" + Log::getCurrentDateString() +".log";
+				if((file = freopen(logFilePath.c_str(), "a", stderr)) == nullptr){
+      					std::cerr << "Failed to redirect stderr to file" << std::endl;
+				}
+				break;
+			}
+
 			// send message using tcp
 			case CMD::MESSAGE: {
 				std::string ip;
 				unsigned int port;
 				std::string msg;
-				std::cout << "ip port message\n";
 				std::cin >> ip;
 				std::cin >> port;
 				std::cin >> msg;
@@ -69,7 +80,10 @@ int main(int argc, char** argv)
 			}
 
 			case CMD::STORE : {
-				pro.reqUdpAdopter();
+				std::string path;
+				std::cin >> path;
+				file f;
+				f.store(path);
 				break;
 			}
 
