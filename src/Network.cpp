@@ -451,7 +451,19 @@ int Network::getTcpSocket(){
 	if(setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0){ 
 		SYSLOG(WARN, "SOCKET_REUSEADDR_FLAG_FAIL"); 
 	}
+	
+	// Set the timeout for connect
+    	struct timeval timeout;
+    	timeout.tv_sec = 2; // 5 seconds
+    	timeout.tv_usec = 0;
 
+    	//if(setsockopt(soc, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0){
+	//	SYSLOG(WARN, "SOCKET_RCVTIMEOUT_FAIL"); 
+    	//}
+
+    	if(setsockopt(soc, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0){
+		SYSLOG(WARN, "SOCKET_SNDTIMEOUT_FAIL"); 
+    	}
 	return soc;
 }
 
@@ -608,6 +620,7 @@ int Network::sendTcpPacket(packet& pkt, const n_addr& receiver_addr){
 		close(soc);
 		return -1;
 	}
+
 	PKTLOG(SEND, recv_addr, pkt.type(), send_Bytes);
 
 	// we can receive acknowledgement here

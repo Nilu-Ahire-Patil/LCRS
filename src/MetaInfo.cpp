@@ -50,7 +50,7 @@ chunk::chunk(const char* data):_header(data) {
 
 // create chunk
 chunk::chunk(sys_id s_id, int no, size_t dataSize, char* data): _header(s_id, no, dataSize) {
-	this->_data = new char[this->dataSize()];
+	this->_data = new char[dataSize];
 	memcpy(this->_data, data, dataSize);
 }
 

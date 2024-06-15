@@ -66,10 +66,14 @@ int file::store(const std::string& path){
         	// Read a chunk of data from the file
         	file.read(buffer, mInfo.blockSize());
 
+
 		// check this chunk variable scope
 	//	mInfo[i] = chunk(s_id, i, file.gcount(), data);
 
 		chunk chnk(s_id, i, file.gcount(), buffer);
+
+		delete[] buffer;
+		buffer = nullptr;
 
 		while(Protocol::adopter_book.size() > 0){
 			if(it == Protocol::adopter_book.end()){ it = Protocol::adopter_book.begin(); }

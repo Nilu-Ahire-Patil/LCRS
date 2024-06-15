@@ -151,6 +151,7 @@ int Protocol::repTcpStore(const n_addr addr, const chunk& chnk){
 		// send chunk id with ERR_STORE request
 		return nt.sendTcpPacket(pkte, addr);
 	}	
+	return 0;
 }
 
 // send message using tcp
