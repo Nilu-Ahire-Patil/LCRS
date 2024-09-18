@@ -1,10 +1,14 @@
+int main(){
+	return 0;
+}
+
 #ifndef MAIN
 #define MAIN
 
 #include "Log.h"		// getCurrentDateString
-#include "Connect.h"		// Connect
+#include "Connect.h"	// Connect
 #include "Packet.h"		// Packet
-#include "Protocol.h"		// Protocol
+#include "Protocol.h"	// Protocol
 #include "File.h"		// store
 
 #include <string>		// string
@@ -32,7 +36,7 @@ CMD str_to_cmd(const std::string& cmd){
         return CMD::UNKNOWN;
 }
 
-int main(int argc, char** argv)
+int main1(int argc, char** argv)
 {
 	// Redirect stderr to a file
 	/*
