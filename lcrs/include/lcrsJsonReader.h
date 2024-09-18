@@ -9,7 +9,7 @@ public:
     ~lcrsJsonReader();
 
 private:
-    const std::string mFilePath;
+    static const std::string mFilePath;
 }
 
 LCRS_NAMESPACE_END
