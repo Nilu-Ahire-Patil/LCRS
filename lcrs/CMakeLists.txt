@@ -1,24 +1,23 @@
 cmake_minimum_required(VERSION 3.10)
 
-PROJECT(Lcrs)
-
-#FILE(GLOB HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/*)
-#FILE(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*)
+project(Lcrs)
 
 include(ExternalProject)
 
-# Function to check and install jsoncpp
+set(JSONCPP_INSTALL_DIR ${CMAKE_BINARY_DIR}/jsoncpp_source)
+
 function(install_jsoncpp)
     ExternalProject_Add(
         jsoncpp
         GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
-        GIT_TAG master  # or specify a version/tag
-        BUILD_IN_SOURCE TRUE
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/jsoncpp_install
+        GIT_TAG master  # specify a stable version if necessary
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/jsoncpp_source
+        BINARY_DIR ${CMAKE_BINARY_DIR}/jsoncpp_build
+        INSTALL_COMMAND ""  # Skip installation to prevent in-source issues
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${JSONCPP_INSTALL_DIR}
     )
 endfunction()
 
-# Find jsoncpp
 find_package(JsonCpp QUIET)
 
 if(NOT JsonCpp_FOUND)
@@ -29,23 +28,32 @@ else()
 endif()
 
 add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/lcrs.cpp)
-#add_executable(${PROJECT_NAME}TestApp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_BINARY_DIR}/jsoncpp_install/include
+    ${JSONCPP_INSTALL_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/jsoncpp_install/lib/libjsoncpp.a)
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    ${JSONCPP_INSTALL_DIR}/lib/libjsoncpp.a
+)
 
-#target_include_directories(${PROJECT_NAME}TestApp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+install(TARGETS ${PROJECT_NAME} 
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION bin
+    PUBLIC_HEADER DESTINATION include
+    PRIVATE_HEADER DESTINATION include/internal
+)
 
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
-install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION bin)
-install(TARGETS ${PROJECT_NAME} PUBLIC_HEADER DESTINATION include)
-install(TARGETS ${PROJECT_NAME} PRIVATE_HEADER DESTINATION include/internal)
+# Add an executable target if needed (uncomment to use)
+# add_executable(${PROJECT_NAME}TestApp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+# target_link_libraries(${PROJECT_NAME}TestApp PRIVATE ${PROJECT_NAME})
+# target_include_directories(${PROJECT_NAME}TestApp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# install(TARGETS ${PROJECT_NAME}TestApp LIBRARY DESTINATION lib)
-# install(TARGETS ${PROJECT_NAME}TestApp ARCHIVE DESTINATION bin)
-# install(TARGETS ${PROJECT_NAME}TestApp PUBLIC_HEADER DESTINATION include)
-# install(TARGETS ${PROJECT_NAME}TestApp PRIVATE_HEADER DESTINATION include/internal)
+# Install rules for the test application (uncomment to use)
+# install(TARGETS ${PROJECT_NAME}TestApp 
+#     LIBRARY DESTINATION lib
+#     ARCHIVE DESTINATION bin
+#     PUBLIC_HEADER DESTINATION include
+#     PRIVATE_HEADER DESTINATION include/internal
+# )
