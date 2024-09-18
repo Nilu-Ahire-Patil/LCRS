@@ -1,6 +1,7 @@
 lcrs/build/cmake_install.cmake
 lcrs/build/CMakeCache.txt
 lcrs/build/libLcrs.a
+lcrs/build/*
 lcrs/build/Makefile
 lcrs/build/CMakeFiles/cmake.check_cache
 lcrs/build/CMakeFiles/CMakeConfigureLog.yaml
