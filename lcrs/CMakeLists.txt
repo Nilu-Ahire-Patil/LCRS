@@ -1,59 +1,111 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Lcrs)
 
-include(ExternalProject)
-
-set(JSONCPP_INSTALL_DIR ${CMAKE_BINARY_DIR}/jsoncpp_source)
-
-function(install_jsoncpp)
-    ExternalProject_Add(
-        jsoncpp
-        GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
-        GIT_TAG master  # specify a stable version if necessary
-        SOURCE_DIR ${CMAKE_BINARY_DIR}/jsoncpp_source
-        BINARY_DIR ${CMAKE_BINARY_DIR}/jsoncpp_build
-        INSTALL_COMMAND ""  # Skip installation to prevent in-source issues
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${JSONCPP_INSTALL_DIR}
-    )
-endfunction()
-
-find_package(JsonCpp QUIET)
-
-if(NOT JsonCpp_FOUND)
-    message(STATUS "jsoncpp not found, installing...")
-    install_jsoncpp()
-else()
-    message(STATUS "Found jsoncpp")
-endif()
-
-add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/lcrs.cpp)
-
-target_include_directories(${PROJECT_NAME} PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${JSONCPP_INSTALL_DIR}/include
+project(
+    lcrs
+        VERSION 1.0.0
+        LANGUAGES CXX
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE 
-    ${JSONCPP_INSTALL_DIR}/lib/libjsoncpp.a
+
+set(FETCHCONTENT_QUIET OFF)
+set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+
+
+include(FetchContent)
+
+FetchContent_Declare(
+    Boost
+        GIT_REPOSITORY https://github.com/boostorg/boost.git
+        GIT_TAG boost-1.86.0
 )
 
-install(TARGETS ${PROJECT_NAME} 
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION bin
-    PUBLIC_HEADER DESTINATION include
-    PRIVATE_HEADER DESTINATION include/internal
+FetchContent_MakeAvailable(Boost)
+
+
+file(GLOB
+    HEADER_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
 
-# Add an executable target if needed (uncomment to use)
-# add_executable(${PROJECT_NAME}TestApp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-# target_link_libraries(${PROJECT_NAME}TestApp PRIVATE ${PROJECT_NAME})
-# target_include_directories(${PROJECT_NAME}TestApp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+file(GLOB 
+    SOURCE_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 
-# Install rules for the test application (uncomment to use)
-# install(TARGETS ${PROJECT_NAME}TestApp 
-#     LIBRARY DESTINATION lib
-#     ARCHIVE DESTINATION bin
-#     PUBLIC_HEADER DESTINATION include
-#     PRIVATE_HEADER DESTINATION include/internal
+
+add_library(
+    ${PROJECT_NAME}
+        ${SOURCE_FILES}
+        ${HEADER_FILES}
+)
+
+
+add_library(
+    ${PROJECT_NAME}::${PROJECT_NAME}
+        ALIAS ${PROJECT_NAME}
+)
+
+
+target_link_libraries(
+    ${PROJECT_NAME}
+        PRIVATE
+            Boost::asio 
+            Boost::system
+)
+
+
+target_include_directories(
+    ${PROJECT_NAME}
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+            $<INSTALL_INTERFACE:include>
+)
+
+set_target_properties(
+    ${PROJECT_NAME}
+        PROPERTIES
+            VERSION ${PROJECT_VERSION}
+            SOVERSION 1
+            EXPORT_NAME ${PROJECT_NAME}
+)
+
+install(TARGETS
+    ${PROJECT_NAME}
+        EXPORT ${PROJECT_NAME}Targets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            INCLUDES DESTINATION include
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION include
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_file(
+    cmake/${PROJECT_NAME}Config.cmake.in
+    ${PROJECT_NAME}Config.cmake @ONLY
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+# Correct export command
+# install(EXPORT ${PROJECT_NAME}Targets
+#     FILE ${PROJECT_NAME}Targets.cmake
+#     NAMESPACE ${PROJECT_NAME}::
+#     DESTINATION lib/cmake/${PROJECT_NAME}
 # )
