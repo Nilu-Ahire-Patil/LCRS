@@ -47,6 +47,17 @@ add_library(
 )
 
 
+add_executable(
+    server
+        src/server.cpp   
+)
+
+add_executable(
+    client
+        src/client.cpp   
+)
+
+
 target_link_libraries(
     ${PROJECT_NAME}
         PRIVATE
@@ -54,10 +65,37 @@ target_link_libraries(
             Boost::system
 )
 
+target_link_libraries(
+    server
+        PRIVATE
+            Boost::asio 
+            Boost::system
+)
+
+target_link_libraries(
+    client
+        PRIVATE
+            Boost::asio 
+            Boost::system
+)
 
 target_include_directories(
     ${PROJECT_NAME}
         PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+            $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(
+    server
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+            $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(
+    client
+        PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
             $<INSTALL_INTERFACE:include>
 )
