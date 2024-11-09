@@ -40,7 +40,6 @@ add_library(
         ${HEADER_FILES}
 )
 
-
 add_library(
     ${PROJECT_NAME}::${PROJECT_NAME}
         ALIAS ${PROJECT_NAME}

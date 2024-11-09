@@ -1,4 +1,4 @@
-#include "lcrs.h"
+#include "lcrs/lcrs.h"
 
 #include <iostream>
 
