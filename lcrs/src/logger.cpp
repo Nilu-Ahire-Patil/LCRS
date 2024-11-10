@@ -45,7 +45,7 @@ int Logger::init(const std::string &loggerName,
     return EXIT_SUCCESS;
 }
 
-int Logger::SetLogLevel(const spdlog::level::level_enum logLevel)
+int Logger::setLevel(const spdlog::level::level_enum logLevel)
 {
 	mLogLevel = logLevel;
 	mLogger->set_level(mLogLevel);

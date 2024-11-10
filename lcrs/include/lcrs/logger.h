@@ -20,7 +20,7 @@ public:
 						  const int maxFileCount = 3
 	);
 
-	static int SetLogLevel(const spdlog::level::level_enum logLevel);
+	static int setLevel(const spdlog::level::level_enum logLevel);
 
 private:
 	Logger();

@@ -14,7 +14,7 @@
 int main() {
 
     Logger::init("lcrsTest");
-    Logger::SetLogLevel(spdlog::level::trace);
+    Logger::setLevel(spdlog::level::trace);
 
     SPDLOG_TRACE("this is trace message");
     SPDLOG_ERROR("this is error message");
