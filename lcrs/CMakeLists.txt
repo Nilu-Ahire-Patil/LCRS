@@ -23,9 +23,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Boost)
 
 
+option(SPDLOG_BUILD_SHARED "build spdlog as shared library" ${BUILD_SHARED_LIBS})
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.15.0
+)
+
+FetchContent_MakeAvailable(spdlog)
+
 file(GLOB
     HEADER_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
 )
 
 file(GLOB 
@@ -45,18 +55,47 @@ add_library(
         ALIAS ${PROJECT_NAME}
 )
 
-
 target_link_libraries(
     ${PROJECT_NAME}
         PRIVATE
             Boost::asio 
             Boost::system
+            spdlog::spdlog
 )
-
 
 target_include_directories(
     ${PROJECT_NAME}
         PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+            $<INSTALL_INTERFACE:include>
+)
+
+
+add_executable(
+    ${PROJECT_NAME}Test
+       src/${PROJECT_NAME}Test.cpp
+)
+
+target_include_directories(
+    ${PROJECT_NAME}Test
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+            $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(
+    ${PROJECT_NAME}Test
+        PRIVATE
+            Boost::asio 
+            Boost::system
+            spdlog::spdlog
+            lcrs::lcrs
+)
+
+target_include_directories(
+    ${PROJECT_NAME}Test
+        PUBLIC
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
             $<INSTALL_INTERFACE:include>
 )
