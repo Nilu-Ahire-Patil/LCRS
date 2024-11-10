@@ -13,3 +13,10 @@ if (NOT gtest_FOUND)
 
     FetchContent_MakeAvailable(gtest)
 endif()
+
+if (TARGET gtest AND TARGET gtest_main)
+    set(GTEST_LIBS gtest gtest_main)
+else()
+    find_package(GTest REQUIRED)
+    set(GTEST_LIBS GTest::gtest GTest::gtest_main)
+endif()

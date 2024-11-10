@@ -60,16 +60,27 @@ option(ENABLE_TESTS "build test" ON)
 if(ENABLE_TESTS)
     add_executable(
         ${PROJECT_NAME}Test
-        src/test.cpp
+        src/test/test.cpp
     )
 
-    target_link_libraries(
-        ${PROJECT_NAME}Test
+    target_include_directories(${PROJECT_NAME}Test
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    set(TARGETS ${PROJECT_NAME}Test)
+
+    foreach(target ${TARGETS})
+        target_link_libraries(${target}
             PRIVATE
                 spdlog::spdlog
                 lcrs::lcrs
-    )
-    
+                ${GTEST_LIBS}
+        )
+    endforeach()
+
+    enable_testing()
+    add_test(NAME ${PROJECT_NAME}Test COMMAND ${PROJECT_NAME}Test)
 endif()
 
 # set_target_properties(
