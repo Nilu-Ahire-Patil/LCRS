@@ -18,4 +18,5 @@ target_link_libraries(
     ${PROJECT_NAME}
         PRIVATE
             lcrs::lcrs
+            spdlog::spdlog
 )
