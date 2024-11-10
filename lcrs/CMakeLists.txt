@@ -7,6 +7,8 @@ project(
         LANGUAGES CXX
 )
 
+cmake_policy(SET CMP0077 NEW)
+
 set(FETCHCONTENT_QUIET OFF)
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
@@ -53,35 +55,36 @@ target_include_directories(
             $<INSTALL_INTERFACE:include>
 )
 
+# add_executable(
+#     ${PROJECT_NAME}Test
+#        src/test.cpp
+# )
 
-add_executable(
-    ${PROJECT_NAME}Test
-       src/${PROJECT_NAME}Test.cpp
-)
+# target_include_directories(
+#     ${PROJECT_NAME}Test
+#         PUBLIC
+#             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+#             $<INSTALL_INTERFACE:include>
+# )
 
-target_include_directories(
-    ${PROJECT_NAME}Test
-        PUBLIC
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-            $<INSTALL_INTERFACE:include>
-)
+# target_link_libraries(
+#     ${PROJECT_NAME}Test
+#         PRIVATE
+#             Boost::asio 
+#             Boost::system
+#             spdlog::spdlog
+#             lcrs::lcrs
+# )
 
-target_link_libraries(
-    ${PROJECT_NAME}Test
-        PRIVATE
-            Boost::asio 
-            Boost::system
-            spdlog::spdlog
-            lcrs::lcrs
-)
+# target_include_directories(
+#     ${PROJECT_NAME}Test
+#         PUBLIC
+#         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+#             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+#             $<INSTALL_INTERFACE:include>
+# )
 
-target_include_directories(
-    ${PROJECT_NAME}Test
-        PUBLIC
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-            $<INSTALL_INTERFACE:include>
-)
+##
 
 # set_target_properties(
 #     ${PROJECT_NAME}
