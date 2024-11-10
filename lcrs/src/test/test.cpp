@@ -1,4 +1,5 @@
 #include "lcrs/test/test.h"
+#include "gtest/gtest.h"
 
 int Test::all()
 {
@@ -29,4 +30,11 @@ int Test::logger()
 int main(int argc, char** argv){
     Logger::init("lcrsTest", spdlog::level::trace);
     return Test::all();
+}
+
+
+TEST(System, macAddressMap)
+{
+    int available_address_count = System::getMacAddressMap().size();
+    EXPECT_GT(available_address_count, 0);
 }

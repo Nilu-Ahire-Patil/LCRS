@@ -3,6 +3,6 @@
 
 class System
 {
-protected:
+public:
     static const std::unordered_map<std::string, const unsigned char *> getMacAddressMap();
 };
