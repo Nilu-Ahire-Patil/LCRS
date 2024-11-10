@@ -1,4 +1,4 @@
 lcrs/build/*
 ./build/*
 build/*
-.vscode/tasks.json
+.vscode/*
