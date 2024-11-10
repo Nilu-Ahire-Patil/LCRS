@@ -1,6 +1,6 @@
-#include "lcrs/test/test.h"
+#include "lcrs/lcrs.h"
 
 int main(int argc, char** argv){
     Logger::init("lcrsApp", spdlog::level::trace);
-    return Test::all();
+    Lcrs lcrs;
 }
