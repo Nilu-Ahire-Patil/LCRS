@@ -1,8 +1,6 @@
-#include "lcrs/lcrs.h"
-
-#include <iostream>
+#include "lcrs/test/test.h"
 
 int main(int argc, char** argv){
-    std::cout << "ok\n";
-    return 0;
+    Logger::init("lcrsApp", spdlog::level::trace);
+    return Test::all();
 }
