@@ -1,8 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#define SPDLOG_ACTIVE_LEVEL 0
-
 #include <filesystem>
 
 #include <spdlog/spdlog.h>

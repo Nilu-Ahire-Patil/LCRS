@@ -1,3 +1,5 @@
+#define SPDLOG_ACTIVE_LEVEL 0
+
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
