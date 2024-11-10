@@ -7,30 +7,13 @@ project(
         LANGUAGES CXX
 )
 
-
 set(FETCHCONTENT_QUIET OFF)
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
 
-include(FetchContent)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/spdlog.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/boost.cmake)
 
-FetchContent_Declare(
-    Boost
-        GIT_REPOSITORY https://github.com/boostorg/boost.git
-        GIT_TAG boost-1.86.0
-)
-
-FetchContent_MakeAvailable(Boost)
-
-
-option(SPDLOG_BUILD_SHARED "build spdlog as shared library" ${BUILD_SHARED_LIBS})
-FetchContent_Declare(
-    spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG v1.15.0
-)
-
-FetchContent_MakeAvailable(spdlog)
 
 file(GLOB
     HEADER_FILES
