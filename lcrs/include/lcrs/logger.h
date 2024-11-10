@@ -1,6 +1,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#define SPDLOG_ACTIVE_LEVEL 0
+
 #include <filesystem>
 
 #include <spdlog/spdlog.h>
@@ -11,14 +13,15 @@
 template class std::shared_ptr<spdlog::logger>;
 #endif
 
-class Logger {
+class Logger
+{
 public:
-	static int init(const std::string &loggerName,
-						  const std::string &logFilePath = "",	// on empty it stores log in syatem temperory directory
-						  const spdlog::level::level_enum logLevel = spdlog::level::info,
-						  const int maxFileSize = 1024 * 1024 * 1024,
-						  const int maxFileCount = 3
-	);
+	static int init(
+		const std::string &loggerName,
+		const spdlog::level::level_enum logLevel = spdlog::level::info,
+		const std::string &logFilePath = "", // on empty it stores log in syatem temperory directory
+		const int maxFileSize = 1024 * 1024 * 1024,
+		const int maxFileCount = 3);
 
 	static int setLevel(const spdlog::level::level_enum logLevel);
 

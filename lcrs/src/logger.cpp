@@ -13,14 +13,15 @@ int Logger::mMaxFileCount;
 
 std::shared_ptr<spdlog::logger> Logger::mLogger;
 
-int Logger::init(const std::string &loggerName,
-                             const std::string &logFilePath,
-                             const spdlog::level::level_enum logLevel,
-                             const int maxFileSize,
-                             const int maxFileCount)
+int Logger::init(
+    const std::string &loggerName,
+    const spdlog::level::level_enum logLevel,
+    const std::string &logFilePath,
+    const int maxFileSize,
+    const int maxFileCount)
 {
     mLoggerName = loggerName;
-    mLogFilePath = logFilePath.empty() ? std::filesystem::temp_directory_path().string() + "/lcrs/Log/" + mLoggerName + ".log" : logFilePath;
+    mLogFilePath = logFilePath.empty() ? std::filesystem::temp_directory_path().string() + "/lcrs/log/" + mLoggerName + ".log" : logFilePath;
     mLogLevel = logLevel;
     mMaxFileSize = maxFileSize;
     mMaxFileCount = maxFileCount;
@@ -39,15 +40,15 @@ int Logger::init(const std::string &loggerName,
 
     spdlog::set_default_logger(mLogger);
 
-    SPDLOG_INFO("Writing logs in {}", mLogFilePath);
-    SPDLOG_INFO("{} Application started", mLoggerName);
+    lcrsLog(TRACE, "Writing logs in {}", mLogFilePath);
+    lcrsLog(TRACE, "{} Application started", mLoggerName);
 
     return EXIT_SUCCESS;
 }
 
 int Logger::setLevel(const spdlog::level::level_enum logLevel)
 {
-	mLogLevel = logLevel;
-	mLogger->set_level(mLogLevel);
+    mLogLevel = logLevel;
+    mLogger->set_level(mLogLevel);
     return EXIT_FAILURE;
 }
