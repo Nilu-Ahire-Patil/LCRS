@@ -58,6 +58,11 @@ target_include_directories(
 option(ENABLE_TESTS "build test" ON)
 
 if(ENABLE_TESTS)
+
+    include(CTest)
+    enable_testing()
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gtest.cmake)
+
     add_executable(
         ${PROJECT_NAME}Test
         src/test/test.cpp
@@ -75,11 +80,11 @@ if(ENABLE_TESTS)
             PRIVATE
                 spdlog::spdlog
                 lcrs::lcrs
-                ${GTEST_LIBS}
+                GTest::gtest
+                GTest::gtest_main
         )
     endforeach()
-
-    enable_testing()
+    message(STATUS "Adding test ${PROJECT_NAME}Test")
     add_test(NAME ${PROJECT_NAME}Test COMMAND ${PROJECT_NAME}Test)
 endif()
 
