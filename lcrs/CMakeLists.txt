@@ -55,36 +55,22 @@ target_include_directories(
             $<INSTALL_INTERFACE:include>
 )
 
-# add_executable(
-#     ${PROJECT_NAME}Test
-#        src/test.cpp
-# )
+option(ENABLE_TESTS "build test" ON)
 
-# target_include_directories(
-#     ${PROJECT_NAME}Test
-#         PUBLIC
-#             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-#             $<INSTALL_INTERFACE:include>
-# )
+if(ENABLE_TESTS)
+    add_executable(
+        ${PROJECT_NAME}Test
+        src/test.cpp
+    )
 
-# target_link_libraries(
-#     ${PROJECT_NAME}Test
-#         PRIVATE
-#             Boost::asio 
-#             Boost::system
-#             spdlog::spdlog
-#             lcrs::lcrs
-# )
-
-# target_include_directories(
-#     ${PROJECT_NAME}Test
-#         PUBLIC
-#         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-#             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
-#             $<INSTALL_INTERFACE:include>
-# )
-
-##
+    target_link_libraries(
+        ${PROJECT_NAME}Test
+            PRIVATE
+                spdlog::spdlog
+                lcrs::lcrs
+    )
+    
+endif()
 
 # set_target_properties(
 #     ${PROJECT_NAME}

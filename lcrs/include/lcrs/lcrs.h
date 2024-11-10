@@ -4,11 +4,11 @@
 #include "lcrs/logger.h"
 #include "lcrs/system.h"
 
-class lcrs
+class Lcrs
 {
 public:
-    lcrs();
-    ~lcrs();
+    Lcrs();
+    ~Lcrs();
 
 private:
 };

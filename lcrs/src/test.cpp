@@ -25,3 +25,8 @@ int Test::logger()
 
     return EXIT_SUCCESS;
 }
+
+int main(int argc, char** argv){
+    Logger::init("lcrsApp", spdlog::level::trace);
+    return Test::all();
+}
