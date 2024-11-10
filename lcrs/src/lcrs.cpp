@@ -3,3 +3,7 @@
 Lcrs::Lcrs()
 {
 }
+
+Lcrs::~Lcrs()
+{
+}
