@@ -27,6 +27,6 @@ int Test::logger()
 }
 
 int main(int argc, char** argv){
-    Logger::init("lcrsApp", spdlog::level::trace);
+    Logger::init("lcrsTest", spdlog::level::trace);
     return Test::all();
 }
