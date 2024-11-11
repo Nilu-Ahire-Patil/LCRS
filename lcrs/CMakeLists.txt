@@ -61,6 +61,8 @@ if(ENABLE_TESTS)
 
     include(CTest)
     enable_testing()
+    add_compile_definitions(TEST_MODE)
+
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gtest.cmake)
 
     add_executable(
