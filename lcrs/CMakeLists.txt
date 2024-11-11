@@ -75,19 +75,16 @@ if(ENABLE_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
-    set(TARGETS ${PROJECT_NAME}Test)
-
-    foreach(target ${TARGETS})
-        target_link_libraries(${target}
+    target_link_libraries(${PROJECT_NAME}Test
             PRIVATE
                 spdlog::spdlog
                 lcrs::lcrs
                 GTest::gtest
                 GTest::gtest_main
         )
-    endforeach()
-    message(STATUS "Adding test ${PROJECT_NAME}Test")
+
     add_test(NAME ${PROJECT_NAME}Test COMMAND ${PROJECT_NAME}Test)
+
 endif()
 
 # set_target_properties(
