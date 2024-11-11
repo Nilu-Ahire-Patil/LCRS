@@ -11,6 +11,7 @@ cmake_policy(SET CMP0077 NEW)
 
 set(FETCHCONTENT_QUIET OFF)
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+include(CTest)
 
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/spdlog.cmake)
@@ -55,11 +56,9 @@ target_include_directories(
             $<INSTALL_INTERFACE:include>
 )
 
-option(ENABLE_TESTS "build test" ON)
+option(ENABLE_TESTS "build test suite" ON)
 
 if(ENABLE_TESTS)
-
-    include(CTest)
     enable_testing()
     add_compile_definitions(TEST_MODE)
 
@@ -76,12 +75,12 @@ if(ENABLE_TESTS)
     )
 
     target_link_libraries(${PROJECT_NAME}Test
-            PRIVATE
-                spdlog::spdlog
-                lcrs::lcrs
-                GTest::gtest
-                GTest::gtest_main
-        )
+        PRIVATE
+            spdlog::spdlog
+            lcrs::lcrs
+            GTest::gtest
+            GTest::gtest_main
+    )
 
     add_test(NAME ${PROJECT_NAME}Test COMMAND ${PROJECT_NAME}Test)
 
