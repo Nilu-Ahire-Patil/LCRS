@@ -1,15 +1,67 @@
 include(FetchContent)
 
-find_package(boost::boost QUIET)
+function(find_or_fetch_boost lib_name)
+    find_package(boost::${lib_name} QUIET)
+    if (NOT ${lib_name}_FOUND)
+        FetchContent_Declare(
+            ${lib_name}
+            GIT_REPOSITORY https://github.com/boostorg/${lib_name}.git
+            GIT_TAG boost-1.86.0
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+        )
+        FetchContent_MakeAvailable(${lib_name})
+    endif()
+endfunction()
 
-if (NOT spdlog_FOUND)
-    FetchContent_Declare(
-        boost
-        GIT_REPOSITORY https://github.com/boostorg/boost.git
-        GIT_TAG boost-1.86.0
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
-    )
+# find_or_fetch_boost(boost)
 
-    FetchContent_MakeAvailable(boost)
-endif()
+find_or_fetch_boost(asio)
+find_or_fetch_boost(align)
+find_or_fetch_boost(assert)
+find_or_fetch_boost(system)
+find_or_fetch_boost(config)
+find_or_fetch_boost(throw_exception)
+find_or_fetch_boost(core)
+find_or_fetch_boost(static_assert)
+find_or_fetch_boost(context)
+find_or_fetch_boost(variant2)
+find_or_fetch_boost(coroutine)
+find_or_fetch_boost(winapi)
+find_or_fetch_boost(mp11)
+find_or_fetch_boost(date_time)
+find_or_fetch_boost(pool)
+find_or_fetch_boost(exception)
+find_or_fetch_boost(predef)
+find_or_fetch_boost(smart_ptr)
+find_or_fetch_boost(move)
+find_or_fetch_boost(algorithm)
+find_or_fetch_boost(integer)
+find_or_fetch_boost(type_traits)
+find_or_fetch_boost(io)
+find_or_fetch_boost(tuple)
+find_or_fetch_boost(array)
+find_or_fetch_boost(bind)
+find_or_fetch_boost(lexical_cast)
+find_or_fetch_boost(utility)
+find_or_fetch_boost(preprocessor)
+find_or_fetch_boost(container)
+find_or_fetch_boost(concept_check)
+find_or_fetch_boost(numeric_conversion)
+find_or_fetch_boost(conversion)
+find_or_fetch_boost(intrusive)
+find_or_fetch_boost(function)
+find_or_fetch_boost(range)
+find_or_fetch_boost(tokenizer)
+find_or_fetch_boost(iterator)
+find_or_fetch_boost(mpl)
+find_or_fetch_boost(container_hash)
+find_or_fetch_boost(regex)
+find_or_fetch_boost(optional)
+find_or_fetch_boost(detail)
+find_or_fetch_boost(describe)
+find_or_fetch_boost(function_types)
+find_or_fetch_boost(unordered)
+find_or_fetch_boost(fusion)
+find_or_fetch_boost(typeof)
+find_or_fetch_boost(functional)
