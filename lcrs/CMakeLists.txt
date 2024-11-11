@@ -11,7 +11,6 @@ cmake_policy(SET CMP0077 NEW)
 
 set(FETCHCONTENT_QUIET OFF)
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
-include(CTest)
 
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/spdlog.cmake)
@@ -59,6 +58,8 @@ target_include_directories(
 option(ENABLE_TESTS "build test suite" ON)
 
 if(ENABLE_TESTS)
+
+    include(CTest)
     enable_testing()
     add_compile_definitions(TEST_MODE)
 
