@@ -1,6 +1,7 @@
 build
 ```bash
 git clone https://github.com/Nilu-Ahire-Patil/LCRS.git
+cd LCRS
 mkdir build
 cd build
 cmake ..
