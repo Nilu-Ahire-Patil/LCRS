@@ -13,8 +13,8 @@ set(FETCHCONTENT_QUIET OFF)
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/spdlog.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/boost.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/spdlog.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/boost.cmake)
 
 
 file(GLOB
@@ -63,7 +63,7 @@ if(ENABLE_TESTS)
     enable_testing()
     add_compile_definitions(TEST_MODE)
 
-    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gtest.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/gtest.cmake)
 
     add_executable(
         ${PROJECT_NAME}Test
