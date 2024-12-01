@@ -16,7 +16,7 @@ class Logger
 public:
 	static int init(
 		const std::string &loggerName,
-		const spdlog::level::level_enum logLevel = spdlog::level::info,
+		const spdlog::level::level_enum logLevel = spdlog::level::trace,
 		const std::string &logFilePath = "", // on empty it stores log in syatem temperory directory
 		const int maxFileSize = 1024 * 1024 * 1024,
 		const int maxFileCount = 3);
